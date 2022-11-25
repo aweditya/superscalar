@@ -1,0 +1,13 @@
+v 3
+file . "se6.vhdl" "20221125174028.000" "20221126002210.066":
+  entity bitextender6 at 1( 0) + 0 on 35;
+  architecture behavior of bitextender6 at 11( 205) + 0 on 36;
+file . "alu.vhdl" "20221125174444.000" "20221126002209.973":
+  entity alu at 1( 0) + 0 on 31;
+  architecture a1 of alu at 16( 373) + 0 on 32;
+file . "bit1shift.vhdl" "20221125174158.000" "20221126002210.019":
+  entity bit1shift at 1( 0) + 0 on 33;
+  architecture a1 of bit1shift at 11( 198) + 0 on 34;
+file . "exec_pipe_alu.vhdl" "20221125185206.000" "20221126002209.931":
+  entity aluexecpipe at 1( 0) + 0 on 29;
+  architecture behavioural of aluexecpipe at 20( 664) + 0 on 30;
