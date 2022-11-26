@@ -3,16 +3,16 @@ use ieee.std_logic_1164.all;
 
 entity aluexecpipe is 
     port(
-        c_sig_in: in std_logic_vector(5 downto 0);
+        control_sig_in: in std_logic_vector(5 downto 0);
         -- bit 1 and 0 are for mux 
-        --  00 - opr2, 01 - leftshift(opr2), 10 - se6(opr2), 11 - invalid
+        --  00 - rb_data, 01 - leftshift(rb_data), 10 - se6(rb_data), 11 - invalid
         
         -- bit 3 and 2 are for alu operation same as in alu.vhdl
         --  01 - add, 10 - nand, 11 - xor, 00 - invalid
 
         -- bit 4 is c_flag_enable for carry flag modification
         -- bit 5 is z_flag_enable for zero flag modification
-        opr1, opr2, pc_in: in std_logic_vector(15 downto 0);
+        ra_data, rb_data, imm_data, pc_in: in std_logic_vector(15 downto 0);
         c_in, z_in: in std_logic;
         c_out, z_out: out std_logic;
         pc_out, result: out std_logic_vector(15 downto 0)
@@ -20,7 +20,7 @@ entity aluexecpipe is
 end entity;
 
 architecture behavioural of aluexecpipe is
-    signal opr2_se_sig, opr2_ls_sig, a_sig, b_sig: std_logic_vector(15 downto 0);
+    signal imm_data_se_sig, rb_data_ls_sig, a_sig, b_sig: std_logic_vector(15 downto 0);
     signal c_sig, c_sig_alu_out, z_sig, z_sig_alu_out: std_logic;
     
     component bitextender6 is
@@ -50,39 +50,38 @@ architecture behavioural of aluexecpipe is
 
 begin
 
-    p1: process(c_sig_in, opr1, opr2, pc_in, c_in, z_in, opr2_ls_sig, opr2_se_sig)
+    p1: process(control_sig_in, ra_data, rb_data, pc_in, c_in, z_in, rb_data_ls_sig, imm_data_se_sig)
         begin
-        if(c_sig_in(1 downto 0) = "00") then
-            b_sig <= opr2;
-        elsif(c_sig_in(1 downto 0) = "01") then
-            b_sig <= opr2_ls_sig;
-        elsif(c_sig_in(1 downto 0) = "10") then
-            b_sig <= opr2_se_sig;
+        if(control_sig_in(1 downto 0) = "00") then
+            b_sig <= rb_data;
+        elsif(control_sig_in(1 downto 0) = "01") then
+            b_sig <= rb_data_ls_sig;
+        elsif(control_sig_in(1 downto 0) = "10") then
+            b_sig <= imm_data_se_sig;
         else --invalid state 
             b_sig <= (others => 'Z');
         end if;
     end process p1;
 
-    p2: process(c_sig_in, opr1, opr2, pc_in, c_in, z_in, c_sig_alu_out, z_sig_alu_out)
+    p2: process(control_sig_in, ra_data, rb_data, pc_in, c_in, z_in, c_sig_alu_out, z_sig_alu_out)
         begin
-        if(c_sig_in(5 downto 4) = "11") then
+        if (control_sig_in(5) = '1') then
             c_out <= c_sig_alu_out;
-            z_out <= z_sig_alu_out;
-        elsif(c_sig_in(5 downto 4) = "01") then
-            c_out <= c_in;
-            z_out <= z_sig_alu_out;
-        elsif(c_sig_in(5 downto 4) = "10") then
-            c_out <= c_sig_alu_out;
-            z_out <= z_in;
         else
-            c_out <= c_in;
+            c_cout <= c_in;
+        end if;
+
+        if (control_sig_in(4) = '0') then
+            z_out <= z_sig_alu_out;
+        else
             z_out <= z_in;
         end if;
     end process p2;
 
-    a1: alu port map(a => a_sig, b => b_sig, s =>c_sig_in(3 downto 2), op => result, carry => c_sig_alu_out, zero => z_sig_alu_out);
-    s1: bitextender6 port map(a => opr2(5 downto 0), op => opr2_se_sig);
-    b1: bit1shift port map(a => opr2, op => opr2_ls_sig);
-    a_sig <= opr1; 
+    a1: alu port map(a => a_sig, b => b_sig, s => control_sig_in(3 downto 2), op => result, carry => c_sig_alu_out, zero => z_sig_alu_out);
+    s1: bitextender6 port map(a => imm_data, op => imm_data_se_sig);
+    b1: bit1shift port map(a => rb_data, op => rb_data_ls_sig);
+
+    a_sig <= ra_data; 
     pc_out <= pc_in;
 end behavioural;
