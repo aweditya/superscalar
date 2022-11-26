@@ -64,20 +64,23 @@ begin
         end if;
     end process p1;
 
-    p2: process(control_sig_in, ra_data, rb_data, pc_in, c_in, z_in, c_sig_alu_out, z_sig_alu_out)
+    carry_flag_process: process(control_sig_in, ra_data, rb_data, pc_in, c_in, c_sig_alu_out)
         begin
-        if (control_sig_in(5) = '1') then
+        if (control_sig_in(4) = '1') then
             c_out <= c_sig_alu_out;
         else
             c_cout <= c_in;
         end if;
+    end process carry_flag_process;
 
-        if (control_sig_in(4) = '0') then
+    zero_flag_process: process(control_sig_in, ra_data, rb_data, pc_in, z_in, z_sig_alu_out)
+        begin
+        if (control_sig_in(5) = '1') then
             z_out <= z_sig_alu_out;
         else
             z_out <= z_in;
         end if;
-    end process p2;
+    end process zero_flag_process;
 
     a1: alu port map(a => a_sig, b => b_sig, s => control_sig_in(3 downto 2), op => result, carry => c_sig_alu_out, zero => z_sig_alu_out);
     s1: bitextender6 port map(a => imm_data, op => imm_data_se_sig);
