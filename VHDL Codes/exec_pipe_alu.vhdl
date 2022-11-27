@@ -69,7 +69,7 @@ begin
         if (control_sig_in(4) = '1') then
             c_out <= c_sig_alu_out;
         else
-            c_cout <= c_in;
+            c_out <= c_in;
         end if;
     end process carry_flag_process;
 
