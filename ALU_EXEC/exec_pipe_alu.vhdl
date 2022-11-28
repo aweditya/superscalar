@@ -21,8 +21,8 @@ entity aluexecpipe is
 end entity;
 
 architecture behavioural of aluexecpipe is
-    signal imm_data_se_sig, rb_data_ls_sig, a_sig, b_sig: std_logic_vector(15 downto 0);
-    signal c_sig, c_sig_alu_out, z_sig, z_sig_alu_out: std_logic;
+    signal imm_data_se_sig, rb_data_ls_sig, a_sig, b_sig: std_logic_vector(15 downto 0) := (others => '0');
+    signal c_sig, c_sig_alu_out, z_sig, z_sig_alu_out: std_logic := '0';
     
     component bitextender6 is
         port (
