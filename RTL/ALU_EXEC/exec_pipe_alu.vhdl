@@ -14,15 +14,15 @@ entity aluexecpipe is
         -- bit 5 is z_flag_enable for zero flag modification
         ra_data, rb_data, pc_in: in std_logic_vector(15 downto 0);
         imm_data: in std_logic_vector(5 downto 0);
-        c_in, z_in: in std_logic;
+        c_in, z_in: in std_logic:='0';
         c_out, z_out: out std_logic;
         pc_out, result: out std_logic_vector(15 downto 0)
     );
 end entity;
 
 architecture behavioural of aluexecpipe is
-    signal imm_data_se_sig, rb_data_ls_sig, a_sig, b_sig: std_logic_vector(15 downto 0);
-    signal c_sig, c_sig_alu_out, z_sig, z_sig_alu_out: std_logic;
+    signal imm_data_se_sig, rb_data_ls_sig, a_sig, b_sig: std_logic_vector(15 downto 0) := (others => '0');
+    signal c_sig, c_sig_alu_out, z_sig, z_sig_alu_out: std_logic := '0';
     
     component bitextender6 is
         port (
