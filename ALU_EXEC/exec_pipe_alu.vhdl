@@ -12,9 +12,9 @@ entity aluexecpipe is
 
         -- bit 4 is c_flag_enable for carry flag modification
         -- bit 5 is z_flag_enable for zero flag modification
-        ra_data, rb_data, pc_in: in std_logic_vector(15 downto 0);
-        imm_data: in std_logic_vector(5 downto 0);
-        c_in, z_in: in std_logic;
+        ra_data, rb_data, pc_in: in std_logic_vector(15 downto 0) :=(others=>'0');
+        imm_data: in std_logic_vector(5 downto 0) := (others=>'0');
+        c_in, z_in: in std_logic:='0';
         c_out, z_out: out std_logic;
         pc_out, result: out std_logic_vector(15 downto 0)
     );
