@@ -27,11 +27,11 @@ architecture behave of tb is
     end component;
 
     --signals here--
-    signal c_sig_in_sig: std_logic_vector(5 downto 0);
-    signal opr1_sig,opr2_sig,pc_in_sig: std_logic_vector(15 downto 0);
-    signal imm6_sig: std_logic_vector(5 downto 0);
-    signal c_in_sig, z_in_sig, c_out_sig, z_out_sig: std_logic;
-    signal pc_out_sig, result_sig: std_logic_vector(15 downto 0); 
+    signal c_sig_in_sig: std_logic_vector(5 downto 0) := (others => '0');
+    signal opr1_sig,opr2_sig,pc_in_sig: std_logic_vector(15 downto 0) := (others => '0');
+    signal imm6_sig: std_logic_vector(5 downto 0) := (others => '0');
+    signal c_in_sig, z_in_sig, c_out_sig, z_out_sig: std_logic:='0';
+    signal pc_out_sig, result_sig: std_logic_vector(15 downto 0):= (others => '0'); 
 begin
     dut1: aluexecpipe
         port map(
