@@ -8,21 +8,23 @@ end entity;
 architecture behavioural of tb is
     component PriorityEncoder is
         generic (
-            output_width : integer := 2 + 1;
-            input_width : integer := 2 ** 2
+            input_width : integer := 2 ** 2;
+            output_width : integer := 2 
         );
         port (
             a: in std_logic_vector(input_width - 1 downto 0);
-            y: out std_logic_vector(output_width - 1 downto 0)
+            y: out std_logic_vector(output_width - 1 downto 0);
+            all_ones: out std_logic
         );
     end component;
 
     signal a_in: std_logic_vector(3 downto 0) := (others => '0');
-    signal y_out: std_logic_vector(2 downto 0) := (others => '0');
+    signal y_out: std_logic_vector(1 downto 0) := (others => '0');
+    signal all_ones_out: std_logic;
 
 begin
     encoder: PriorityEncoder
-        port map(a => a_in, y => y_out);
+        port map(a => a_in, y => y_out, all_ones => all_ones_out);
 
     test_process: process
     begin
