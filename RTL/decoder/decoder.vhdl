@@ -26,7 +26,7 @@ begin
             end if;
         end loop;
     
-        one_hot_encoding_out <= one_hot_encoding;
     end process one_hot_process;
+    one_hot_encoding_out <= one_hot_encoding;
 
 end behavioural;
