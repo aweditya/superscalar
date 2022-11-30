@@ -8,7 +8,7 @@ entity regfile is
         arf_bit_size: integer := 5; -- for flags := 2
         --log2(no of rrf regs) 
         rrf_bit_size: integer := 8; -- for flags := 8
-        data_size: integer := 16; -- for flags := 8
+        data_size: integer := 16 -- for flags := 8
     );
     port(
         clk, clr, wr_1, wr_2, complete: in std_logic;
@@ -24,13 +24,13 @@ end regfile;
 
 architecture behavior of regfile is  
 
-    type arf_data_type is array((2**arf_bit_size)-1 downto 0) of std_logic_vector(data_size-1 downto 0);
-    type arf_valid_type is array((2**arf_bit_size)-1 downto 0) of std_logic;
-    type arf_tag_type is array((2**arf_bit_size)-1 downto 0) of std_logic_vector(rrf_bit_size-1 downto 0);
+    type arf_data_type is array((integer'(2)**arf_bit_size)-1 downto 0) of std_logic_vector(data_size-1 downto 0);
+    type arf_valid_type is array((integer'(2)**arf_bit_size)-1 downto 0) of std_logic;
+    type arf_tag_type is array((integer'(2)**arf_bit_size)-1 downto 0) of std_logic_vector(rrf_bit_size-1 downto 0);
 
-    type rrf_data_type is array((2**rrf_bit_size)-1 downto 0) of std_logic_vector(data_size-1 downto 0);
-    type rrf_valid_type is array((2**rrf_bit_size)-1 downto 0) of std_logic;
-    type rrf_busy_type is array((2**rrf_bit_size)-1 downto 0) of std_logic;
+    type rrf_data_type is array((integer'(2)**rrf_bit_size)-1 downto 0) of std_logic_vector(data_size-1 downto 0);
+    type rrf_valid_type is array((integer'(2)**rrf_bit_size)-1 downto 0) of std_logic;
+    type rrf_busy_type is array((integer'(2)**rrf_bit_size)-1 downto 0) of std_logic;
 
     signal rrf_data: rrf_data_type;
     signal rrf_valid: rrf_valid_type;
@@ -46,7 +46,7 @@ begin
     clear: process(clr)
         begin
         if clr = '1' then
-            for i in 0 to (2**arf_bit_size)-1 loop
+            for i in 0 to (integer'(2)**arf_bit_size)-1 loop
                 arf_data(i) <= (others => '0');
                 arf_valid(i) <= '0';
                 arf_tag(i) <= (others => '0');
@@ -54,7 +54,7 @@ begin
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';
             end loop;
-            for i in (2**arf_bit_size) to (2**rrf_bit_size)-1 loop
+            for i in (integer'(2)**arf_bit_size) to (integer'(2)**rrf_bit_size)-1 loop
                 rrf_data(i) <= (others => '0');
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';
@@ -73,14 +73,7 @@ begin
                     data_out_sig_1 <= rrf_data(to_integer(unsigned(tag_1)));
                 else
                     --sign extension--
-                    if tag_1(rrf_bit_size-1)='1' then
-                        sign_ext_sig <= (others => '1');
-                        data_out_sig_1 <= sign_ext_sig & tag_1;
-                    else 
-                        sign_ext_sig <= (others => '0');
-                        data_out_sig_1 <= sign_ext_sig & tag_1;
-                    end if;
-                    data_out_1_sig_1 <= std_logic_vector(resize(unsigned(tag_1), data_size));
+                    data_out_sig_1 <= std_logic_vector(resize(unsigned(tag_1), data_size));
                 end if;
             end if;
     end process operand_read_1;
@@ -95,7 +88,7 @@ begin
                     data_out_sig_2 <= rrf_data(to_integer(unsigned(tag_2)));
                 else
                     --sign extension--
-                    data_out_1_sig_1 <= std_logic_vector(resize(unsigned(tag_2), data_size));
+                    data_out_sig_2 <= std_logic_vector(resize(unsigned(tag_2), data_size));
                 end if;
             end if;
     end process operand_read_2;
