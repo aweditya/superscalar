@@ -3,27 +3,34 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity regfile is 
+    generic( 
+        --log2(no of arf regs)
+        arf_bit_size: integer := 5; -- for flags := 2
+        --log2(no of rrf regs) 
+        rrf_bit_size: integer := 8; -- for flags := 8
+        data_size: integer := 16; -- for flags := 8
+    );
     port(
         clk, clr, wr_1, wr_2, complete: in std_logic;
-        reg_select_1, reg_select_2, dest: in std_logic_vector(4 downto 0);
-        tag_1, tag_2: in std_logic_vector(7 downto 0);
-        data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
-        rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
+        reg_select_1, reg_select_2, dest: in std_logic_vector(arf_bit_size-1 downto 0);
+        tag_1, tag_2: in std_logic_vector(rrf_bit_size-1 downto 0);
+        data_alu_1, data_alu_2: in std_logic_vector(data_size-1 downto 0);
+        rr_alu_1, rr_alu_2: in std_logic_vector(rrf_bit_size-1 downto 0);
         finish_alu_1, finish_alu_2: in std_logic;
 
-        data_out_1,data_out_2: out std_logic_vector(15 downto 0)
+        data_out_1,data_out_2: out std_logic_vector(data_size-1 downto 0)
     );
 end regfile;
 
 architecture behavior of regfile is  
 
-    type arf_data_type is array(31 downto 0) of std_logic_vector(15 downto 0);
-    type arf_valid_type is array(31 downto 0) of std_logic;
-    type arf_tag_type is array(31 downto 0) of std_logic_vector(7 downto 0);
+    type arf_data_type is array((2**arf_bit_size)-1 downto 0) of std_logic_vector(data_size-1 downto 0);
+    type arf_valid_type is array((2**arf_bit_size)-1 downto 0) of std_logic;
+    type arf_tag_type is array((2**arf_bit_size)-1 downto 0) of std_logic_vector(rrf_bit_size-1 downto 0);
 
-    type rrf_data_type is array(255 downto 0) of std_logic_vector(15 downto 0);
-    type rrf_valid_type is array(255 downto 0) of std_logic;
-    type rrf_busy_type is array(255 downto 0) of std_logic;
+    type rrf_data_type is array((2**rrf_bit_size)-1 downto 0) of std_logic_vector(data_size-1 downto 0);
+    type rrf_valid_type is array((2**rrf_bit_size)-1 downto 0) of std_logic;
+    type rrf_busy_type is array((2**rrf_bit_size)-1 downto 0) of std_logic;
 
     signal rrf_data: rrf_data_type;
     signal rrf_valid: rrf_valid_type;
@@ -33,13 +40,13 @@ architecture behavior of regfile is
     signal arf_valid: arf_valid_type;
     signal arf_tag: arf_tag_type;
 
-    signal data_out_sig_1, data_out_sig_2: std_logic_vector(15 downto 0);
+    signal data_out_sig_1, data_out_sig_2: std_logic_vector(data_size-1 downto 0);
 
 begin
     clear: process(clr)
         begin
         if clr = '1' then
-            for i in 0 to 31 loop
+            for i in 0 to (2**arf_bit_size)-1 loop
                 arf_data(i) <= (others => '0');
                 arf_valid(i) <= '0';
                 arf_tag(i) <= (others => '0');
@@ -47,7 +54,7 @@ begin
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';
             end loop;
-            for i in 32 to 255 loop
+            for i in (2**arf_bit_size) to (2**rrf_bit_size)-1 loop
                 rrf_data(i) <= (others => '0');
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';
@@ -57,7 +64,7 @@ begin
         end if;
     end process clear;
 
-    operand_read_1: process(clk, clr, reg_select_1, tag_1, arf_data, rrf_data)
+    operand_read_1: process(clk, reg_select_1, tag_1, arf_data, rrf_data)
         begin 
             if arf_valid(to_integer(unsigned(reg_select_1))) = '1' then
                 data_out_sig_1 <= arf_data(to_integer(unsigned(reg_select_1)));
@@ -66,11 +73,14 @@ begin
                     data_out_sig_1 <= rrf_data(to_integer(unsigned(tag_1)));
                 else
                     --sign extension--
-                    if tag_1(7)='1' then
-                        data_out_sig_1 <= "11111111"&tag_1;
+                    if tag_1(rrf_bit_size-1)='1' then
+                        sign_ext_sig <= (others => '1');
+                        data_out_sig_1 <= sign_ext_sig & tag_1;
                     else 
-                        data_out_sig_1 <= "00000000"&tag_1;
+                        sign_ext_sig <= (others => '0');
+                        data_out_sig_1 <= sign_ext_sig & tag_1;
                     end if;
+                    data_out_1_sig_1 <= std_logic_vector(resize(unsigned(tag_1), data_size));
                 end if;
             end if;
     end process operand_read_1;
@@ -85,11 +95,7 @@ begin
                     data_out_sig_2 <= rrf_data(to_integer(unsigned(tag_2)));
                 else
                     --sign extension--
-                    if tag_2(7)='1' then
-                        data_out_sig_2 <= "11111111"&tag_2;
-                    else 
-                        data_out_sig_2 <= "00000000"&tag_2;
-                    end if;
+                    data_out_1_sig_1 <= std_logic_vector(resize(unsigned(tag_2), data_size));
                 end if;
             end if;
     end process operand_read_2;
