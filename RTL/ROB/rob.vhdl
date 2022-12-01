@@ -58,28 +58,31 @@ architecture behavioural of rob is
     signal empty: std_logic;
 
 begin
-
-    -- responsible for FIFO logic, clearing entries and adding newly decoded instructions to the ROB
-    p1: process(clk, clr, wr_inst1, wr_inst2, rd, full, empty)
+    -- responsible for clearing entries when clr is set
+    p0: process(clr)
+        begin
+        -- clear data and indices when reset is set
+        if (clr = '1') then
+            rob_pc <= (others => (others => '0'));
+            rob_value <= (others => (others => '0'));
+            rob_dest <= (others => (others => '0'));
+            rob_rr1 <= (others => (others => '0'));
+            rob_c <= (others => '0');
+            rob_rr2 <= (others => (others => '0'));
+            rob_z <= (others => '0');
+            rob_rr3 <= (others => (others => '0'));
+            rob_finished <= (others => '0');
+            rob_completed <= (others => '0');
+            wr_index <= 0;
+            rd_index <= 0;
+            count <= 0;
+        end if;
+    end process p0;
+    -- responsible for FIFO logic and adding newly decoded instructions to the ROB
+    p1: process(clk, wr_inst1, wr_inst2, rd, full, empty)
         begin
         -- both write and read from the ROB Buffer happens at the rising edge of clock
         if rising_edge(clk) then
-            -- clear data and indices when reset is set
-            if (clr = '1') then
-                rob_pc <= (others => (others => '0'));
-                rob_value <= (others => (others => '0'));
-                rob_dest <= (others => (others => '0'));
-                rob_rr1 <= (others => (others => '0'));
-                rob_c <= (others => '0');
-                rob_rr2 <= (others => (others => '0'));
-                rob_z <= (others => '0');
-                rob_rr3 <= (others => (others => '0'));
-                rob_finished <= (others => '0');
-                rob_completed <= (others => '0');
-                wr_index <= 0;
-                rd_index <= 0;
-                count <= 0;
-            end if;
             -- keeps track of the total number of entries in the ROB
             if (wr_inst1 = '1' and wr_inst2 = '1' and rd = '1') then
                 count <= count + 1;
