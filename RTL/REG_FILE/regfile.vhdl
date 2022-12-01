@@ -6,19 +6,20 @@ entity regfile is
     generic( 
         --log2(no of arf regs)
         arf_bit_size: integer := 5; -- for flags := 2
+
         --log2(no of rrf regs) 
         rrf_bit_size: integer := 8; -- for flags := 8
         data_size: integer := 16 -- for flags := 8
     );
     port(
         clk, clr, wr_1, wr_2, complete: in std_logic;
-        reg_select_1, reg_select_2, dest: in std_logic_vector(arf_bit_size-1 downto 0);
-        tag_1, tag_2: in std_logic_vector(rrf_bit_size-1 downto 0);
+        reg_select_1, reg_select_2, reg_select_3, reg_select_4, dest: in std_logic_vector(arf_bit_size-1 downto 0);
+        tag_1, tag_2, tag_3, tag_4: in std_logic_vector(rrf_bit_size-1 downto 0);
         data_alu_1, data_alu_2: in std_logic_vector(data_size-1 downto 0);
         rr_alu_1, rr_alu_2: in std_logic_vector(rrf_bit_size-1 downto 0);
         finish_alu_1, finish_alu_2: in std_logic;
 
-        data_out_1,data_out_2: out std_logic_vector(data_size-1 downto 0)
+        data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(data_size-1 downto 0)
     );
 end regfile;
 
@@ -40,7 +41,7 @@ architecture behavior of regfile is
     signal arf_valid: arf_valid_type;
     signal arf_tag: arf_tag_type;
 
-    signal data_out_sig_1, data_out_sig_2: std_logic_vector(data_size-1 downto 0);
+    signal data_out_sig_1, data_out_sig_2, data_out_sig_3, data_out_sig_4: std_logic_vector(data_size-1 downto 0);
 
 begin
     clear: process(clr)
@@ -64,6 +65,7 @@ begin
         end if;
     end process clear;
 
+
     operand_read_1: process(clk, reg_select_1, tag_1, arf_data, rrf_data)
         begin 
             if arf_valid(to_integer(unsigned(reg_select_1))) = '1' then
@@ -77,7 +79,6 @@ begin
                 end if;
             end if;
     end process operand_read_1;
-
     
     operand_read_2: process(clk, reg_select_2, tag_2, arf_data, rrf_data)
         begin 
@@ -92,6 +93,35 @@ begin
                 end if;
             end if;
     end process operand_read_2;
+
+    operand_read_3: process(clk, reg_select_3, tag_3, arf_data, rrf_data)
+        begin 
+            if arf_valid(to_integer(unsigned(reg_select_3))) = '1' then
+                data_out_sig_3 <= arf_data(to_integer(unsigned(reg_select_3)));
+            else
+                if(rrf_valid(to_integer(unsigned(tag_3)))) = '1' then
+                    data_out_sig_3 <= rrf_data(to_integer(unsigned(tag_3)));
+                else
+                    --sign extension--
+                    data_out_sig_3 <= std_logic_vector(resize(unsigned(tag_3), data_size));
+                end if;
+            end if;
+    end process operand_read_3;
+
+    operand_read_4: process(clk, reg_select_4, tag_4, arf_data, rrf_data)
+        begin 
+            if arf_valid(to_integer(unsigned(reg_select_4))) = '1' then
+                data_out_sig_4 <= arf_data(to_integer(unsigned(reg_select_4)));
+            else
+                if(rrf_valid(to_integer(unsigned(tag_4)))) = '1' then
+                    data_out_sig_4 <= rrf_data(to_integer(unsigned(tag_4)));
+                else
+                    --sign extension--
+                    data_out_sig_4 <= std_logic_vector(resize(unsigned(tag_4), data_size));
+                end if;
+            end if;
+    end process operand_read_4;
+
 
     operand_write_1: process(clk, wr_1, reg_select_1, tag_1)
         begin
@@ -117,6 +147,7 @@ begin
             end if;
     end process operand_write_2;
 
+
     instr_finish_1: process(clk, finish_alu_1, data_alu_1, rr_alu_1)
         begin
             if finish_alu_1 = '1' then
@@ -124,7 +155,6 @@ begin
                 rrf_valid(to_integer(unsigned(rr_alu_1))) <= '1';
             end if;
     end process instr_finish_1;
-
     
     instr_finish_2: process(clk, finish_alu_2, data_alu_2, rr_alu_2)
         begin
@@ -133,6 +163,7 @@ begin
                 rrf_valid(to_integer(unsigned(rr_alu_2))) <= '1';
             end if;
     end process instr_finish_2;
+
 
     instr_complete: process(clk, dest, complete, rrf_data, arf_tag)
         variable desired_tag: integer;
@@ -151,4 +182,7 @@ begin
 
     data_out_1 <= data_out_sig_1;
     data_out_2 <= data_out_sig_2;
+    data_out_3 <= data_out_sig_3;
+    data_out_4 <= data_out_sig_4;
+
 end behavior;
