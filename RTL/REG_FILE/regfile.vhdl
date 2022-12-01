@@ -20,6 +20,8 @@ entity regfile is
         finish_alu_1, finish_alu_2: in std_logic;
 
         data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(data_size-1 downto 0)
+        -- Indicates if data is read (0) or the tag (1)
+        data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic
     );
 end regfile;
 
@@ -42,6 +44,7 @@ architecture behavior of regfile is
     signal arf_tag: arf_tag_type;
 
     signal data_out_sig_1, data_out_sig_2, data_out_sig_3, data_out_sig_4: std_logic_vector(data_size-1 downto 0);
+    signal data_tag_out_1, data_tag_out_2, data_tag_out_3, data_tag_out_4: std_logic;
 
 begin
     clear: process(clr)
@@ -55,13 +58,23 @@ begin
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';
             end loop;
+
             for i in (integer'(2)**arf_bit_size) to (integer'(2)**rrf_bit_size)-1 loop
                 rrf_data(i) <= (others => '0');
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';
             end loop;
+
             data_out_sig_1 <= (others => '0');
             data_out_sig_2 <= (others => '0');
+            data_out_sig_3 <= (others => '0');
+            data_out_sig_4 <= (others => '0');
+
+            data_tag_out_1 <= '0';
+            data_tag_out_2 <= '0';
+            data_tag_out_3 <= '0';
+            data_tag_out_4 <= '0';
+
         end if;
     end process clear;
 
@@ -70,12 +83,18 @@ begin
         begin 
             if arf_valid(to_integer(unsigned(reg_select_1))) = '1' then
                 data_out_sig_1 <= arf_data(to_integer(unsigned(reg_select_1)));
+                data_tag_out_1 <= '0';
+
             else
                 if(rrf_valid(to_integer(unsigned(tag_1)))) = '1' then
                     data_out_sig_1 <= rrf_data(to_integer(unsigned(tag_1)));
+                    data_tag_out_1 <= '0';
+
                 else
                     --sign extension--
                     data_out_sig_1 <= std_logic_vector(resize(unsigned(tag_1), data_size));
+                    data_tag_out_1 <= '1';
+
                 end if;
             end if;
     end process operand_read_1;
@@ -84,12 +103,18 @@ begin
         begin 
             if arf_valid(to_integer(unsigned(reg_select_2))) = '1' then
                 data_out_sig_2 <= arf_data(to_integer(unsigned(reg_select_2)));
+                data_tag_out_2 <= '0';
+
             else
                 if(rrf_valid(to_integer(unsigned(tag_2)))) = '1' then
                     data_out_sig_2 <= rrf_data(to_integer(unsigned(tag_2)));
+                    data_tag_out_2 <= '0';
+
                 else
                     --sign extension--
                     data_out_sig_2 <= std_logic_vector(resize(unsigned(tag_2), data_size));
+                    data_tag_out_2 <= '1';
+
                 end if;
             end if;
     end process operand_read_2;
@@ -98,12 +123,18 @@ begin
         begin 
             if arf_valid(to_integer(unsigned(reg_select_3))) = '1' then
                 data_out_sig_3 <= arf_data(to_integer(unsigned(reg_select_3)));
+                data_tag_out_3 <= '0';
+
             else
                 if(rrf_valid(to_integer(unsigned(tag_3)))) = '1' then
                     data_out_sig_3 <= rrf_data(to_integer(unsigned(tag_3)));
+                    data_tag_out_3 <= '0';
+
                 else
                     --sign extension--
                     data_out_sig_3 <= std_logic_vector(resize(unsigned(tag_3), data_size));
+                    data_tag_out_3 <= '1';
+
                 end if;
             end if;
     end process operand_read_3;
@@ -112,12 +143,18 @@ begin
         begin 
             if arf_valid(to_integer(unsigned(reg_select_4))) = '1' then
                 data_out_sig_4 <= arf_data(to_integer(unsigned(reg_select_4)));
+                data_tag_out_4 <= '0';
+
             else
                 if(rrf_valid(to_integer(unsigned(tag_4)))) = '1' then
                     data_out_sig_4 <= rrf_data(to_integer(unsigned(tag_4)));
+                    data_tag_out_4 <= '0';
+
                 else
                     --sign extension--
                     data_out_sig_4 <= std_logic_vector(resize(unsigned(tag_4), data_size));
+                    data_tag_out_4 <= '1';
+
                 end if;
             end if;
     end process operand_read_4;
@@ -184,5 +221,10 @@ begin
     data_out_2 <= data_out_sig_2;
     data_out_3 <= data_out_sig_3;
     data_out_4 <= data_out_sig_4;
+
+    data_tag_1 <= data_tag_out_1;
+    data_tag_2 <= data_tag_out_2;
+    data_tag_3 <= data_tag_out_3;
+    data_tag_4 <= data_tag_out_4;
 
 end behavior;
