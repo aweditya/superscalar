@@ -3,58 +3,42 @@ use ieee.std_logic_1164.all;
 
 entity IFID is 
     port(
-			clk : in std_logic;
-			wr_IFID, IFID_match : in std_logic;
-			IFID_indexout : in integer;
-			clr_IFID: in std_logic;
-			IFID_inc, IFID_PC, IFID_IMem : in std_logic_vector(15 downto 0);
-			IFID_inc_Op, IFID_PC_Op, IFID_IMem_Op : out std_logic_vector(15 downto 0);
-			IFID_indexout_Op : out integer;
-			IFID_match_Op : out std_logic
-			);
+			clk, clr : in std_logic;
+			wr_IFID: in std_logic; 
+			-- IFID_match : in std_logic;
+			-- IFID_indexout : in integer;
+			IFID_inc_D, IFID_PC_D: in std_logic_vector(15 downto 0);
+			IFID_IMem_D: in std_logic_vector(31 downto 0);
+			IFID_inc_Op, IFID_PC_Op: out std_logic_vector(15 downto 0);
+			IFID_IMem_Op: out std_logic_vector(31 downto 0)
+			-- IFID_indexout_Op : out integer;
+			-- IFID_match_Op : out std_logic
+		);
 end IFID;
 
 architecture arch of IFID is
+	signal IFID_IMem: std_logic_vector(31 downto 0);
+	signal IFID_PC, IFID_inc: std_logic_vector(15 downto 0);
 
-	--1-bit Register
-	component reg1 is 
-		port(
-			wr: in std_logic;
-			clk: in std_logic;
-			clr: in std_logic;
-			data: in std_logic;
-			Op: out std_logic
-		);
-	end component;
-	
-	--1-bit Register-Integer
-	component reg1_int is 
-		port(
-			wr: in std_logic;
-			clk: in std_logic;
-			clr: in std_logic;
-			data: in integer;
-			Op: out integer
-		);
-	end component;
-	
-	--16-bit Register
-	component reg is
-		port(
-			wr: in std_logic;
-			clk: in std_logic;
-			clr: in std_logic;
-			data: in std_logic_vector(15 downto 0);
-			Op: out std_logic_vector(15 downto 0)
-		);
-	end component;
-		
-begin
+begin	
+	process(clk, clr, wr_IFID, IFID_inc_D, IFID_PC_D, IFID_IMem_D)
+	begin
+		if clr = '1' then
+			IFID_IMem <= (others => '0');
+			IFID_PC <= (others => '0');
+			IFID_inc <= (others => '0');
+		else
+			if rising_edge(clk) then
+				if wr_IFID = '1' then
+					IFID_IMem <= IFID_IMem_D;
+					IFID_inc <= IFID_inc_D;
+					IFID_PC <= IFID_PC_D;
+				end if;
+			end if;
+		end if;
+	end process;
 
-inc: reg port map (wr=>wr_IFID, clk=>clk, data=>IFID_inc, Op=>IFID_inc_Op, clr=>clr_IFID);
-PC: reg port map (wr=>wr_IFID, clk=>clk, data=>IFID_PC, Op=>IFID_PC_Op, clr=>clr_IFID);
-IMem: reg port map (wr=>wr_IFID, clk=>clk, data=>IFID_IMem, Op=>IFID_IMem_Op, clr=>clr_IFID);
-match: reg1 port map (wr=>wr_IFID, clk=>clk, data=>IFID_match, Op=>IFID_match_Op, clr=>clr_IFID);
-indexout: reg1_int port map (wr=>wr_IFID, clk=>clk, data=>IFID_indexout, Op=>IFID_indexout_Op, clr=>clr_IFID);
-
+	IFID_IMem_Op <= IFID_IMem;
+	IFID_inc_Op <= IFID_inc;
+	IFID_PC_Op <= IFID_PC;
 end arch;

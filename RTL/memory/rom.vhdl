@@ -6,7 +6,7 @@ entity rom is
     port(
 		A: in std_logic_vector(15 downto 0);
 		clr: in std_logic;
-		Dout: out std_logic_vector(15 downto 0)
+		Dout: out std_logic_vector(31 downto 0)
 		);
 end rom;
 
@@ -25,7 +25,7 @@ begin
 	end if;
 		
 	addr <= A;
-	Dout<=mem(to_integer(unsigned(addr)));
+	Dout <= mem(to_integer(unsigned(addr))) & mem(to_integer(unsigned(addr) + 1));
 	
 end process;
 end mem1;
