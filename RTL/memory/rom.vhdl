@@ -25,7 +25,7 @@ begin
 	end if;
 		
 	addr <= A;
-	Dout <= mem(to_integer(unsigned(addr))) & mem(to_integer(unsigned(addr) + 1));
+	Dout <= mem(to_integer(unsigned(addr))) & mem(to_integer(unsigned(addr)) + 1);
 	
 end process;
 end mem1;
