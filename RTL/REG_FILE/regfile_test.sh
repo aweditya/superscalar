@@ -1,0 +1,1 @@
+ghdl -a *.vhdl
