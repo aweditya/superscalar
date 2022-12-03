@@ -15,8 +15,8 @@ entity IDStage is
         wr_inst1, wr_inst2: out std_logic; -- write bits for newly decoded instructions 
         wr_ALU1, wr_ALU2: out std_logic; -- write bits for newly executed instructions
         rd_ALU1, rd_ALU2: out std_logic;  -- read bits for issuing ready instructions
-		control_inst1, control_inst2: in std_logic_vector(5 downto 0); -- control values for the two instructions
-        pc_inst1, pc_inst2: in std_logic_vector(15 downto 0); -- pc values for the two instructions
+		control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
+        pc_inst1, pc_inst2: out std_logic_vector(15 downto 0); -- pc values for the two instructions
         opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: in std_logic_vector(15 downto 0); -- operand values for the two instructions
         imm6_inst1, imm6_inst2: in std_logic_vector(5 downto 0); -- imm6 values for the two instructions
         c_inst1, z_inst1, c_inst2, z_inst2: in std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
@@ -25,7 +25,7 @@ entity IDStage is
         data_ALU1, data_ALU2: in std_logic_vector(15 downto 0); -- data forwarded from the execution pipelines
         rr1_ALU1, rr1_ALU2, rr2_ALU1, rr2_ALU2, rr3_ALU1, rr3_ALU2: in std_logic_vector(7 downto 0); -- rr values coming from the ROB corresponding to execution pipeline outputs
         c_ALU1_in, z_ALU1_in, c_ALU2_in, z_ALU2_in: in std_logic; -- carry and zero values forwarded from the execution pipelines
-        finished_ALU1, finished_ALU2: std_logic; -- finished bits coming from the execution pipelines
+        finished_ALU1, finished_ALU2: std_logic -- finished bits coming from the execution pipelines
     );
 end entity IDStage;
 
@@ -44,7 +44,7 @@ architecture behavioural of IDStage is
             rr_alu_1, rr_alu_2: in std_logic_vector(rrf_bit_size-1 downto 0);
             finish_alu_1, finish_alu_2: in std_logic;
 
-            data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(data_size-1 downto 0)
+            data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(data_size-1 downto 0);
             data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic
         );
     end component;
@@ -55,7 +55,7 @@ architecture behavioural of IDStage is
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
     -- we assume that the RS is large enough so no capacity stalls occur
-    instruction_write_control_process: process(wr_inst1, wr_inst2)
+    instruction_write_control_process: process(wr_inst1_sig, wr_inst2_sig)
     begin
         wr_inst1_sig <= '1';
         wr_inst2_sig <= '1';
@@ -66,7 +66,7 @@ begin
     --
 
     -- TODO 
-    alu_write_control_process: process(wr_ALU1, wr_ALU2)
+    alu_write_control_process: process(wr_ALU1_sig, wr_ALU2_sig)
     begin
 
     end process alu_write_control_process;
@@ -75,7 +75,15 @@ begin
     wr_ALU2 <= wr_ALU2_sig;
     --
 
+    -- Opcode + last two bits for each instruction
+    control_inst1 <= IFID_IMem_Op(31 downto 28) & IFID_IMem_Op(17 downto 16);
+    control_inst2 <= IFID_IMem_Op(15 downto 12) & IFID_IMem_Op(1 downto 0);
+    -- 
 
+    -- PC for both instructions
+    pc_inst1 <= IFID_PC_Op;
+    pc_inst2 <= IFID_inc_Op;
+    --
 
 
     data_register_file: regfile
