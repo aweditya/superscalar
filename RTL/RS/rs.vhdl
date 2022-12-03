@@ -13,7 +13,7 @@ entity rs is
         rd_ALU1, rd_ALU2: in std_logic;  -- read bits for issuing ready instructions
 		clk: in std_logic; -- input clock
         clr: in std_logic; -- clear bit
-		control_inst1, control_inst2: in std_logic_vector(3 downto 0); -- control values for the two instructions
+		control_inst1, control_inst2: in std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: in std_logic_vector(15 downto 0); -- pc values for the two instructions
         opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: in std_logic_vector(15 downto 0); -- operand values for the two instructions
         imm6_inst1, imm6_inst2: in std_logic_vector(5 downto 0); -- imm6 values for the two instructions
@@ -43,7 +43,7 @@ architecture behavioural of rs is
     type rs_type_8 is array(size-1 downto 0) of std_logic_vector(7 downto 0);
 
     -- defining the required columns, each with (size) entries
-    signal rs_control: rs_type_4:= (others => (others => '0'));
+    signal rs_control: rs_type_6:= (others => (others => '0'));
     signal rs_pc: rs_type_16:= (others => (others => '0'));
     signal rs_opr1: rs_type_16:= (others => (others => '0'));
     signal rs_v1: rs_type_1:= (others => '0');
