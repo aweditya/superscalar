@@ -29,30 +29,37 @@ entity IDStage is
     );
 end entity IDStage;
 
-architecture behavioural of IDStage is 
-    component regfile is 
-        generic( 
-            arf_bit_size: integer := 5;
-            rrf_bit_size: integer := 8;
-            data_size: integer := 16
-        );
+architecture behavioural of IDStage is
+    component DataRegisterFile is 
         port(
             clk, clr, wr_1, wr_2, complete: in std_logic;
-            reg_select_1, reg_select_2, reg_select_3, reg_select_4, dest: in std_logic_vector(arf_bit_size-1 downto 0);
-            tag_1, tag_2, tag_3, tag_4: in std_logic_vector(rrf_bit_size-1 downto 0);
-            data_alu_1, data_alu_2: in std_logic_vector(data_size-1 downto 0);
-            rr_alu_1, rr_alu_2: in std_logic_vector(rrf_bit_size-1 downto 0);
+            reg_select_1, reg_select_2, reg_select_3, reg_select_4, dest: in std_logic_vector(4 downto 0);
+            tag_1, tag_2, tag_3, tag_4: in std_logic_vector(7 downto 0);
+            data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
+            rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
             finish_alu_1, finish_alu_2: in std_logic;
 
-            data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(data_size-1 downto 0);
+            data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(15 downto 0);
             data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic
+        );
+    end component;
+
+    component FlagRegisterFile is 
+        port(
+            clk, clr, wr_1, wr_2, complete: in std_logic;
+            reg_select_1, reg_select_2, dest: in std_logic_vector(1 downto 0);
+            tag_1, tag_2: in std_logic_vector(7 downto 0);
+            data_alu_1, data_alu_2: in std_logic_vector(7 downto 0);
+            rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
+            finish_alu_1, finish_alu_2: in std_logic;
+
+            data_out_1, data_out_2: out std_logic_vector(7 downto 0);
+            data_tag_1, data_tag_2: out std_logic
         );
     end component;
 
     signal wr_inst1_sig, wr_inst2_sig: std_logic := '1';
     signal wr_ALU1_sig, wr_ALU2_sig: std_logic := '1';
-
-
 
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
@@ -92,7 +99,7 @@ begin
     imm6_inst2 <= IFID_IMem_Op(5 downto 0);
     -- 
 
-    data_register_file: regfile
+    data_register_file: DataRegisterFile
         generic map(
             arf_bit_size := 5,
             rrf_bit_size := 8,
@@ -136,7 +143,7 @@ begin
             data_tag_4 => valid2_inst2
         );
 
-    carry_register_file: regfile
+    carry_register_file: FlagRegisterFile
         generic map(
             arf_bit_size := 2,
             rrf_bit_size := 8,
@@ -152,14 +159,10 @@ begin
 
             reg_select_1 =>,
             reg_select_2 =>,
-            reg_select_3 =>,
-            reg_select_4 =>,
-
+            
             tag_1 =>,
             tag_2 =>,
-            tag_3 =>,
-            tag_4 =>,
-
+            
             data_alu_1 =>,
             data_alu_2 =>,
 
@@ -169,18 +172,14 @@ begin
             finish_alu_1 =>,
             finish_alu_2 =>,
 
-            data_out_1 =>,
-            data_out_2 =>,
-            data_out_3 =>,
-            data_out_4 =>,
+            data_out_1 => c_inst1,
+            data_out_2 => c_inst2,
 
-            data_tag_1 =>,
-            data_tag_2 =>,
-            data_tag_3 =>,
-            data_tag_4 =>
+            data_tag_1 => valid3_inst1,
+            data_tag_2 => valid3_inst2
         );
 
-    zero_register_file: regfile
+    zero_register_file: FlagRegisterFile
         generic map(
             arf_bit_size := 2,
             rrf_bit_size := 8,
@@ -196,13 +195,9 @@ begin
 
             reg_select_1 =>,
             reg_select_2 =>,
-            reg_select_3 =>,
-            reg_select_4 =>,
 
             tag_1 =>,
             tag_2 =>,
-            tag_3 =>,
-            tag_4 =>,
 
             data_alu_1 =>,
             data_alu_2 =>,
@@ -213,14 +208,10 @@ begin
             finish_alu_1 =>,
             finish_alu_2 =>,
 
-            data_out_1 =>,
-            data_out_2 =>,
-            data_out_3 =>,
-            data_out_4 =>,
+            data_out_1 => z_inst1,
+            data_out_2 => z_inst2,
 
-            data_tag_1 =>,
-            data_tag_2 =>,
-            data_tag_3 =>,
-            data_tag_4 =>
+            data_tag_1 => valid4_inst1,
+            data_tag_2 => valid4_inst2
         );
 end architecture behavioural;
