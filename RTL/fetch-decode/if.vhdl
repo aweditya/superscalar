@@ -37,10 +37,11 @@ architecture behavioural of IFStage is
     signal wr_IFID_sig: std_logic := '1';
 
 begin
+    pc_inc_sig <= std_logic_vector(unsigned(pc_in_sig) + 1);
+
     pc_increment_process: process(clk, pc_in_sig)
     begin
         if (rising_edge(clk)) then
-            pc_inc_sig <= std_logic_vector(unsigned(pc_in_sig) + 1);
             pc_in_sig <= std_logic_vector(unsigned(pc_in_sig) + 2);
         end if;
     end process pc_increment_process;
