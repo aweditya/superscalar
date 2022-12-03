@@ -57,9 +57,21 @@ architecture behavioural of IDStage is
             data_tag_1, data_tag_2: out std_logic
         );
     end component;
+    
+    component OperandExtractor is
+        port(
+            instruction: std_logic_vector(15 downto 0);
+
+            operand1, operand2: std_logic_vector(4 downto 0);
+            destination: std_logic_vector(4 downto 0)
+        );
+    end component;
 
     signal wr_inst1_sig, wr_inst2_sig: std_logic := '1';
     signal wr_ALU1_sig, wr_ALU2_sig: std_logic := '1';
+
+    signal opr_addr1_inst1, opr_addr2_inst1, opr_addr1_inst2, opr_addr2_inst2: std_logic_vector(4 downto 0) := (others => '0');
+    signal dest_addr_inst1, dest_addr_inst2: std_logic_vector(4 downto 0) := (others => '0'); 
 
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
@@ -99,6 +111,24 @@ begin
     imm6_inst2 <= IFID_IMem_Op(5 downto 0);
     -- 
 
+    inst1_operands: OperandExtractor
+        port map(
+            instruction => IFID_PC_Op,
+
+            operand1 => opr_addr1_inst1,
+            operand2 => opr_addr2_inst1,
+            destination => dest_addr_inst1
+        );
+
+    inst2_operands: OperandExtractor
+        port map(
+            instruction => IFID_inc_Op,
+
+            operand1 => opr_addr1_inst2,
+            operand2 => opr_addr2_inst2,
+            destination => dest_addr_inst2
+        );
+
     data_register_file: DataRegisterFile
         generic map(
             arf_bit_size := 5,
@@ -113,10 +143,10 @@ begin
             wr_2 =>,
             complete =>,
 
-            reg_select_1 =>,
-            reg_select_2 =>,
-            reg_select_3 =>,
-            reg_select_4 =>,
+            reg_select_1 => opr_addr1_inst1,
+            reg_select_2 => opr_addr2_inst1,
+            reg_select_3 => opr_addr1_inst2,
+            reg_select_4 => opr_addr2_inst2,
 
             tag_1 =>,
             tag_2 =>,
