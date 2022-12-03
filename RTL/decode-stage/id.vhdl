@@ -85,6 +85,10 @@ begin
     pc_inst2 <= IFID_inc_Op;
     --
 
+    -- Immediate data field
+    imm6_inst1 <= IFID_IMem_Op(21 downto 16);
+    imm6_inst2 <= IFID_IMem_Op(5 downto 0);
+    -- 
 
     data_register_file: regfile
         generic map(
