@@ -30,7 +30,6 @@ architecture behavioural of IFStage is
     component ROM is
         port(
             A: in std_logic_vector(15 downto 0);
-            clr: in std_logic;
             Dout: out std_logic_vector(31 downto 0)
         );
     end component ROM;
@@ -60,7 +59,6 @@ begin
     mem: ROM
         port map(
             A => pc_out_sig,
-            clr => reset,
             Dout => IFID_IMem_D
         );
     

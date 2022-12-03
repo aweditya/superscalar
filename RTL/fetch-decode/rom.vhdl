@@ -5,7 +5,6 @@ use ieee.numeric_std.all;
 entity ROM is
     port(
 		A: in std_logic_vector(15 downto 0);
-		clr: in std_logic;
 		Dout: out std_logic_vector(31 downto 0)
 	);
 end entity ROM;
@@ -22,12 +21,8 @@ architecture behavioural of ROM is
 	signal addr: std_logic_vector(15 downto 0);
 
 begin
-	process (clr, A, mem)
-	begin
-		if (clr = '1') then
-			mem <= (others => "0000000000000000");
-		end if;
-			
+	process (A, mem)
+	begin	
 		addr <= A;
 	end process;
 
