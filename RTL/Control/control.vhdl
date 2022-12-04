@@ -165,6 +165,8 @@ BEGIN
             else
                 adv_rob <= all_advance AND wr_wb_regfile;
             end if;
+            flush_out<=flush_request;
         END IF;
     END PROCESS;
+    
     end architecture;
