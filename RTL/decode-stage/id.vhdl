@@ -17,27 +17,34 @@ entity IDStage is
         rd_ALU1, rd_ALU2: out std_logic;  -- read bits for issuing ready instructions
 		control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: out std_logic_vector(15 downto 0); -- pc values for the two instructions
-        opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: in std_logic_vector(15 downto 0); -- operand values for the two instructions
-        imm6_inst1, imm6_inst2: in std_logic_vector(5 downto 0); -- imm6 values for the two instructions
-        c_inst1, z_inst1, c_inst2, z_inst2: in std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
-        valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: in std_logic; -- valid bits for first instruction
-        valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: in std_logic; -- valid bits for second instruction
-        data_ALU1, data_ALU2: in std_logic_vector(15 downto 0); -- data forwarded from the execution pipelines
+        opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: out std_logic_vector(15 downto 0); -- operand values for the two instructions
+        imm6_inst1, imm6_inst2: out std_logic_vector(5 downto 0); -- imm6 values for the two instructions
+        c_inst1, z_inst1, c_inst2, z_inst2: out std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
+        valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: out std_logic; -- valid bits for first instruction
+        valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic; -- valid bits for second instruction
+        data_ALU1, data_ALU2: out std_logic_vector(15 downto 0); -- data forwarded from the execution pipelines
         rr1_ALU1, rr1_ALU2, rr2_ALU1, rr2_ALU2, rr3_ALU1, rr3_ALU2: out std_logic_vector(7 downto 0); -- rr values coming from the ROB corresponding to execution pipeline outputs
-        c_ALU1_in, z_ALU1_in, c_ALU2_in, z_ALU2_in: in std_logic; -- carry and zero values forwarded from the execution pipelines
-        finished_ALU1, finished_ALU2: std_logic -- finished bits coming from the execution pipelines
+        c_ALU1_in, z_ALU1_in, c_ALU2_in, z_ALU2_in: out std_logic; -- carry and zero values forwarded from the execution pipelines
+        finished_ALU1, finished_ALU2: out std_logic -- finished bits coming from the execution pipelines
     );
 end entity IDStage;
 
 architecture behavioural of IDStage is
     component DataRegisterFile is 
         port(
-            clk, clr, wr_1, wr_2, complete: in std_logic;
-            reg_select_1, reg_select_2, reg_select_3, reg_select_4, dest: in std_logic_vector(4 downto 0);
-            tag_1, tag_2, tag_3, tag_4: in std_logic_vector(7 downto 0);
-            data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
-            rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
+            clk, clr: in std_logic;
+            source_select_1, source_select_2, source_select_3, source_select_4: in std_logic_vector(2 downto 0);
+
+            dest_select_1, dest_select_2: in std_logic_vector(2 downto 0);
+            tag_1, tag_2: in std_logic_vector(7 downto 0);
+
+            wr1, wr2: in std_logic;
             finish_alu_1, finish_alu_2: in std_logic;
+            rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
+            data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
+
+            complete: in std_logic;
+            inst_complete_dest: in std_logic_vector(2 downto 0);
 
             data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(15 downto 0);
             data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic
@@ -130,37 +137,31 @@ begin
         );
 
     data_register_file: DataRegisterFile
-        generic map(
-            arf_bit_size := 5,
-            rrf_bit_size := 8,
-            data_size := 16
-        )
         port map(
             clk => clk,
             clr => clr,
 
-            wr_1 =>,
-            wr_2 =>,
-            complete =>,
+            source_select_1 => opr_addr1_inst1,
+            source_select_2 => opr_addr2_inst1,
+            source_select_3 => opr_addr1_inst2,
+            source_select_4 => opr_addr2_inst2,
 
-            reg_select_1 => opr_addr1_inst1,
-            reg_select_2 => opr_addr2_inst1,
-            reg_select_3 => opr_addr1_inst2,
-            reg_select_4 => opr_addr2_inst2,
-
-            tag_1 =>,
+            dest_select_1 =>,
+            dest_select_2 =>,
+            tag_1 =>, 
             tag_2 =>,
-            tag_3 =>,
-            tag_4 =>,
 
-            data_alu_1 =>,
+            wr1 =>, 
+            wr2 =>,
+            finish_alu_1 =>, 
+            finish_alu_2 =>,
+            rr_alu_1 =>, 
+            rr_alu_2 =>,
+            data_alu_1 =>, 
             data_alu_2 =>,
 
-            rr_alu_1 =>,
-            rr_alu_2 =>,
-
-            finish_alu_1 =>,
-            finish_alu_2 =>,
+            complete =>,
+            inst_complete_dest =>,
 
             data_out_1 => opr1_inst1,
             data_out_2 => opr2_inst1,
