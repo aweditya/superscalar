@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 entity DataRegisterFile is 
     port(
         clk, clr, wr_1, wr_2, complete: in std_logic;
-        reg_select_1, reg_select_2, reg_select_3, reg_select_4, dest: in std_logic_vector(4 downto 0);
+        reg_select_1, reg_select_2, reg_select_3, reg_select_4, dest: in std_logic_vector(2 downto 0);
         tag_1, tag_2, tag_3, tag_4: in std_logic_vector(7 downto 0);
         data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
         rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
@@ -18,9 +18,9 @@ end entity DataRegisterFile;
 
 architecture behavior of DataRegisterFile is  
 
-    type arf_data_type is array((integer'(2)**5)-1 downto 0) of std_logic_vector(15 downto 0);
-    type arf_valid_type is array((integer'(2)**5)-1 downto 0) of std_logic;
-    type arf_tag_type is array((integer'(2)**5)-1 downto 0) of std_logic_vector(7 downto 0);
+    type arf_data_type is array((integer'(2)**3)-1 downto 0) of std_logic_vector(15 downto 0);
+    type arf_valid_type is array((integer'(2)**3)-1 downto 0) of std_logic;
+    type arf_tag_type is array((integer'(2)**3)-1 downto 0) of std_logic_vector(7 downto 0);
 
     type rrf_data_type is array((integer'(2)**8)-1 downto 0) of std_logic_vector(15 downto 0);
     type rrf_valid_type is array((integer'(2)**8)-1 downto 0) of std_logic;
@@ -41,7 +41,7 @@ begin
     clear: process(clr)
         begin
         if clr = '1' then
-            for i in 0 to (integer'(2)**5)-1 loop
+            for i in 0 to (integer'(2)**3)-1 loop
                 arf_data(i) <= (others => '0');
                 arf_valid(i) <= '0';
                 arf_tag(i) <= (others => '0');
@@ -50,7 +50,7 @@ begin
                 rrf_busy(i) <= '0';
             end loop;
 
-            for i in (integer'(2)**5) to (integer'(2)**8)-1 loop
+            for i in (integer'(2)**3) to (integer'(2)**8)-1 loop
                 rrf_data(i) <= (others => '0');
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';

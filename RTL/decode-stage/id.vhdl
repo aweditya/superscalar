@@ -62,16 +62,16 @@ architecture behavioural of IDStage is
         port(
             instruction: std_logic_vector(15 downto 0);
 
-            operand1, operand2: std_logic_vector(4 downto 0);
-            destination: std_logic_vector(4 downto 0)
+            operand1, operand2: std_logic_vector(2 downto 0);
+            destination: std_logic_vector(2 downto 0)
         );
     end component;
 
     signal wr_inst1_sig, wr_inst2_sig: std_logic := '1';
     signal wr_ALU1_sig, wr_ALU2_sig: std_logic := '1';
 
-    signal opr_addr1_inst1, opr_addr2_inst1, opr_addr1_inst2, opr_addr2_inst2: std_logic_vector(4 downto 0) := (others => '0');
-    signal dest_addr_inst1, dest_addr_inst2: std_logic_vector(4 downto 0) := (others => '0'); 
+    signal opr_addr1_inst1, opr_addr2_inst1, opr_addr1_inst2, opr_addr2_inst2: std_logic_vector(2 downto 0) := (others => '0');
+    signal dest_addr_inst1, dest_addr_inst2: std_logic_vector(2 downto 0) := (others => '0'); 
 
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
