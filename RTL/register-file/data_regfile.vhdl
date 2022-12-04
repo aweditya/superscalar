@@ -117,8 +117,10 @@ begin
             end if;
     end process source_read_2;
  
-    source_read_3: process(source_select_3, arf_data, rrf_data)
-        begin 
+    -- Including dest_select_1 and tag_1 to handle dependencies within the same fetch group
+    -- Convention: source_read_1 and source_read_2 are operands for the first instruction
+    source_read_3: process(source_select_3, arf_data, rrf_data, dest_select_1, tag_1)
+        begin
             if (arf_valid(to_integer(unsigned(source_select_3))) = '1') then
                 data_out_sig_3 <= arf_data(to_integer(unsigned(source_select_3)));
                 data_tag_out_3 <= '0';
@@ -130,15 +132,20 @@ begin
 
                 else
                     --sign extension--
-                    data_out_sig_3 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_3)))), 16));
+                    if (source_select_3 = dest_select_1) then
+                        data_out_sig_3 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                    else
+                        data_out_sig_3 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_3)))), 16));
+                    end if;
+                    
                     data_tag_out_3 <= '1';
 
                 end if;
             end if;
     end process source_read_3;
   
-    source_read_4: process(source_select_4, arf_data, rrf_data)
-        begin 
+    source_read_4: process(source_select_4, arf_data, rrf_data, dest_select_1, tag_1)
+        begin
             if (arf_valid(to_integer(unsigned(source_select_4))) = '1') then
                 data_out_sig_4 <= arf_data(to_integer(unsigned(source_select_4)));
                 data_tag_out_4 <= '0';
@@ -150,7 +157,12 @@ begin
 
                 else
                     --sign extension--
-                    data_out_sig_4 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_4)))), 16));
+                    if (source_select_4 = dest_select_1) then
+                        data_out_sig_4 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                    else
+                        data_out_sig_4 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_4)))), 16));
+                    end if;
+                    
                     data_tag_out_4 <= '1';
 
                 end if;
