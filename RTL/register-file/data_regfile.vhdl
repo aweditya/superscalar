@@ -191,20 +191,20 @@ begin
     end process destination_allocate_2;
 
 
-    instr_finish_1: process(clk, finish_alu_1, data_alu_1, rr_alu_1)
+    instr_finish_1: process(clk, finish_alu_1, wr1, data_alu_1, rr_alu_1)
         begin
             if rising_edge(clk) then
-                if (finish_alu_1 = '1' and wr_1 = '1') then
+                if (finish_alu_1 = '1' and wr1 = '1') then
                     rrf_data(to_integer(unsigned(rr_alu_1))) <= data_alu_1;
                     rrf_valid(to_integer(unsigned(rr_alu_1))) <= '1';
                 end if;
             end if;
     end process instr_finish_1;
  
-    instr_finish_2: process(clk, finish_alu_2, data_alu_2, rr_alu_2)
+    instr_finish_2: process(clk, finish_alu_2, wr2, data_alu_2, rr_alu_2)
         begin
             if rising_edge(clk) then
-                if (finish_alu_2 = '1' and wr_2 = '1') then
+                if (finish_alu_2 = '1' and wr2 = '1') then
                     rrf_data(to_integer(unsigned(rr_alu_2))) <= data_alu_2;
                     rrf_valid(to_integer(unsigned(rr_alu_2))) <= '1';
                 end if;
@@ -219,7 +219,7 @@ begin
         begin
             if rising_edge(clk) then
                 if (complete = '1') then
-                    reg_num := to_integer(unsigned(dest));
+                    reg_num := to_integer(unsigned(inst_complete_dest));
                     desired_tag := to_integer(unsigned(arf_tag(reg_num)));
                     arf_data(reg_num) <= rrf_data(desired_tag);
                     rrf_busy(desired_tag) <= '0';
