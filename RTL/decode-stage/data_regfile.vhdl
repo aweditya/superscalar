@@ -19,7 +19,9 @@ entity DataRegisterFile is
         inst_complete_dest: in std_logic_vector(2 downto 0);
 
         data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(15 downto 0);
-        data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic
+        data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic;
+
+        rrf_busy_out: out std_logic_vector((integer'(2)**8)-1 downto 0)
     );
 end entity DataRegisterFile;
 
@@ -231,6 +233,13 @@ begin
                 end if;
             end if;
     end process instr_complete;
+
+    get_rrf_busy_process: process(rrf_busy)
+    begin
+        for i in 0 to (integer'(2)**8)-1 loop
+            rrf_busy_out(i) <= rrf_busy(i);
+        end loop;
+    end process get_rrf_busy_process;
 
     data_out_1 <= data_out_sig_1;
     data_out_2 <= data_out_sig_2;
