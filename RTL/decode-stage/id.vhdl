@@ -47,7 +47,9 @@ architecture behavioural of IDStage is
             inst_complete_dest: in std_logic_vector(2 downto 0);
 
             data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(15 downto 0);
-            data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic
+            data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic;
+
+            rrf_busy_out: out std_logic_vector((integer'(2)**8)-1 downto 0)
         );
     end component;
 
@@ -65,7 +67,23 @@ architecture behavioural of IDStage is
             complete: in std_logic;
 
             data_out_1, data_out_2: out std_logic_vector(7 downto 0);
-            data_tag_1, data_tag_2: out std_logic
+            data_tag_1, data_tag_2: out std_logic;
+
+            rrf_busy_out: out std_logic_vector((integer'(2)**8)-1 downto 0)
+        );
+    end component;
+
+    component DualPriorityEncoder is
+        generic (
+            input_width : integer := 2 ** 8;
+            output_width : integer := 8
+        );
+        port (
+            a: in std_logic_vector(input_width - 1 downto 0);
+            y_first: out std_logic_vector(output_width - 1 downto 0);
+            valid_first: out std_logic;
+            y_second: out std_logic_vector(output_width - 1 downto 0);
+            valid_second: out std_logic
         );
     end component;
     
@@ -84,6 +102,17 @@ architecture behavioural of IDStage is
     signal opr_addr1_inst1, opr_addr2_inst1, opr_addr1_inst2, opr_addr2_inst2: std_logic_vector(2 downto 0) := (others => '0');
     signal dest_addr_inst1, dest_addr_inst2: std_logic_vector(2 downto 0) := (others => '0'); 
 
+    signal data_rrf_busy, carry_rrf_busy, zero_rrf_busy: std_logic_vector((integer'(2)**8)-1 downto 0) := (others => '0');
+
+    -- Signals _rf_full_first, _rf_full_second can be used to check if the corresponding RF have space
+    signal data_rr_tag_inst1, data_rr_tag_inst2: std_logic_vector(7 downto 0) := (others => '0');
+    signal data_rf_full_first, data_rf_full_second: std_logic;
+
+    signal carry_rr_tag_inst1, carry_rr_tag_inst2: std_logic_vector(7 downto 0) := (others => '0');
+    signal carry_rf_full_first, carry_rf_full_second: std_logic;
+
+    signal zero_rr_tag_inst1, zero_rr_tag_inst2: std_logic_vector(7 downto 0) := (others => '0');
+    signal zero_rf_full_first, zero_rf_full_second: std_logic;
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
     -- we assume that the RS is large enough so no capacity stalls occur
@@ -140,6 +169,19 @@ begin
             destination => dest_addr_inst2
         );
 
+    data_priority_encoder: DualPriorityEncoder
+        generic map (
+            input_width => 2 ** 8;
+            output_width => 8
+        )
+        port map(
+            a => data_rrf_busy,
+            y_first => data_rr_tag_inst1,
+            valid_first => data_rf_full_first,
+            y_second => data_rr_tag_inst2,
+            valid_second => data_rf_full_second
+        );
+
     data_register_file: DataRegisterFile
         port map(
             clk => clk,
@@ -154,8 +196,8 @@ begin
             wr2 =>,
             dest_select_1 => dest_addr_inst1,
             dest_select_2 => dest_addr_inst2,
-            tag_1 =>, 
-            tag_2 =>,
+            tag_1 => data_rr_tag_inst1, 
+            tag_2 => data_rr_tag_inst2,
             
             finish_alu_1 =>, 
             finish_alu_2 =>,
@@ -175,7 +217,22 @@ begin
             data_tag_1 => valid1_inst1,
             data_tag_2 => valid2_inst1,
             data_tag_3 => valid1_inst2,
-            data_tag_4 => valid2_inst2
+            data_tag_4 => valid2_inst2,
+
+            rrf_busy_out => data_rrf_busy
+        );
+
+    carry_priority_encoder: DualPriorityEncoder
+        generic map (
+            input_width => 2 ** 8;
+            output_width => 8
+        )
+        port map(
+            a => carry_rrf_busy,
+            y_first => carry_rr_tag_inst1,
+            valid_first => carry_rf_full_first,
+            y_second => carry_rr_tag_inst2,
+            valid_second => carry_rf_full_second
         );
 
     carry_register_file: FlagRegisterFile
@@ -185,8 +242,8 @@ begin
 
             wr1 =>, 
             wr2 =>,
-            tag_1 =>, 
-            tag_2 =>,
+            tag_1 => carry_rr_tag_inst1,
+            tag_2 => carry_rr_tag_inst2,
 
             finish_alu_1 =>,
             finish_alu_2 =>,
@@ -201,7 +258,22 @@ begin
             data_out_2 => c_inst2,
             
             data_tag_1 => valid3_inst1, 
-            data_tag_2 => valid3_inst2
+            data_tag_2 => valid3_inst2,
+
+            rrf_busy_out => carry_rrf_busy
+        );
+
+    zero_priority_encoder: DualPriorityEncoder
+        generic map (
+            input_width => 2 ** 8;
+            output_width => 8
+        )
+        port map(
+            a => zero_rrf_busy,
+            y_first => zero_rr_tag_inst1,
+            valid_first => zero_rf_full_first,
+            y_second => zero_rr_tag_inst2,
+            valid_second => zero_rf_full_second
         );
 
     flag_register_file: FlagRegisterFile
@@ -211,8 +283,8 @@ begin
 
             wr1 =>, 
             wr2 =>,
-            tag_1 =>, 
-            tag_2 =>,
+            tag_1 => zero_rr_tag_inst1,
+            tag_2 => zero_rr_tag_inst2,
 
             finish_alu_1 =>,
             finish_alu_2 =>,
@@ -227,7 +299,9 @@ begin
             data_out_2 => z_inst2,
             
             data_tag_1 => valid4_inst1, 
-            data_tag_2 => valid4_inst2
+            data_tag_2 => valid4_inst2,
+
+            rrf_busy_out => zero_rrf_busy
         );
 
 end architecture behavioural;
