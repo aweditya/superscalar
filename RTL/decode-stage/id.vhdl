@@ -53,12 +53,16 @@ architecture behavioural of IDStage is
 
     component FlagRegisterFile is 
         port(
-            clk, clr, wr_1, wr_2, complete: in std_logic;
-            reg_select_1, reg_select_2, dest: in std_logic_vector(1 downto 0);
+            clk, clr: in std_logic;
+
+            wr1, wr2: in std_logic;
             tag_1, tag_2: in std_logic_vector(7 downto 0);
-            data_alu_1, data_alu_2: in std_logic_vector(7 downto 0);
-            rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
+
             finish_alu_1, finish_alu_2: in std_logic;
+            rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
+            data_alu_1, data_alu_2: in std_logic_vector(0 downto 0);
+
+            complete: in std_logic;
 
             data_out_1, data_out_2: out std_logic_vector(7 downto 0);
             data_tag_1, data_tag_2: out std_logic
@@ -120,7 +124,7 @@ begin
 
     inst1_operands: OperandExtractor
         port map(
-            instruction => IFID_PC_Op,
+            instruction => IFID_IMem_Op(31 downto 16),
 
             operand1 => opr_addr1_inst1,
             operand2 => opr_addr2_inst1,
@@ -129,7 +133,7 @@ begin
 
     inst2_operands: OperandExtractor
         port map(
-            instruction => IFID_inc_Op,
+            instruction => IFID_IMem_Op(15 downto 0),
 
             operand1 => opr_addr1_inst2,
             operand2 => opr_addr2_inst2,
@@ -146,13 +150,13 @@ begin
             source_select_3 => opr_addr1_inst2,
             source_select_4 => opr_addr2_inst2,
 
-            dest_select_1 =>,
-            dest_select_2 =>,
-            tag_1 =>, 
-            tag_2 =>,
-
             wr1 =>, 
             wr2 =>,
+            dest_select_1 => dest_addr_inst1,
+            dest_select_2 => dest_addr_inst2,
+            tag_1 =>, 
+            tag_2 =>,
+            
             finish_alu_1 =>, 
             finish_alu_2 =>,
             rr_alu_1 =>, 
@@ -175,74 +179,55 @@ begin
         );
 
     carry_register_file: FlagRegisterFile
-        generic map(
-            arf_bit_size := 2,
-            rrf_bit_size := 8,
-            data_size := 8
-        )
         port map(
-            clk => clk,
+            clk => clk, 
             clr => clr,
 
-            wr_1 =>,
-            wr_2 =>,
-            complete =>,
-
-            reg_select_1 =>,
-            reg_select_2 =>,
-            
-            tag_1 =>,
+            wr1 =>, 
+            wr2 =>,
+            tag_1 =>, 
             tag_2 =>,
-            
-            data_alu_1 =>,
-            data_alu_2 =>,
-
-            rr_alu_1 =>,
-            rr_alu_2 =>,
 
             finish_alu_1 =>,
             finish_alu_2 =>,
+            rr_alu_1 =>, 
+            rr_alu_2 =>,
+            data_alu_1 =>,
+            data_alu_2 =>,
 
-            data_out_1 => c_inst1,
+            complete =>,
+
+            data_out_1 => c_inst1, 
             data_out_2 => c_inst2,
-
-            data_tag_1 => valid3_inst1,
+            
+            data_tag_1 => valid3_inst1, 
             data_tag_2 => valid3_inst2
         );
 
-    zero_register_file: FlagRegisterFile
-        generic map(
-            arf_bit_size := 2,
-            rrf_bit_size := 8,
-            data_size := 8
-        )
+    flag_register_file: FlagRegisterFile
         port map(
-            clk => clk,
+            clk => clk, 
             clr => clr,
 
-            wr_1 =>,
-            wr_2 =>,
-            complete =>,
-
-            reg_select_1 =>,
-            reg_select_2 =>,
-
-            tag_1 =>,
+            wr1 =>, 
+            wr2 =>,
+            tag_1 =>, 
             tag_2 =>,
-
-            data_alu_1 =>,
-            data_alu_2 =>,
-
-            rr_alu_1 =>,
-            rr_alu_2 =>,
 
             finish_alu_1 =>,
             finish_alu_2 =>,
+            rr_alu_1 =>, 
+            rr_alu_2 =>,
+            data_alu_1 =>,
+            data_alu_2 =>,
 
-            data_out_1 => z_inst1,
+            complete =>,
+
+            data_out_1 => z_inst1, 
             data_out_2 => z_inst2,
-
-            data_tag_1 => valid4_inst1,
+            
+            data_tag_1 => valid4_inst1, 
             data_tag_2 => valid4_inst2
         );
+
 end architecture behavioural;
