@@ -7,10 +7,10 @@ entity DataRegisterFile is
         clk, clr: in std_logic;
         source_select_1, source_select_2, source_select_3, source_select_4: in std_logic_vector(2 downto 0);
 
+        wr1, wr2: in std_logic;
         dest_select_1, dest_select_2: in std_logic_vector(2 downto 0);
         tag_1, tag_2: in std_logic_vector(7 downto 0);
 
-        wr1, wr2: in std_logic;
         finish_alu_1, finish_alu_2: in std_logic;
         rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
         data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
@@ -117,8 +117,10 @@ begin
             end if;
     end process source_read_2;
  
-    source_read_3: process(source_select_3, arf_data, rrf_data)
-        begin 
+    -- Including dest_select_1 and tag_1 to handle dependencies within the same fetch group
+    -- Convention: source_read_1 and source_read_2 are operands for the first instruction
+    source_read_3: process(source_select_3, arf_data, rrf_data, dest_select_1, wr1, tag_1)
+        begin
             if (arf_valid(to_integer(unsigned(source_select_3))) = '1') then
                 data_out_sig_3 <= arf_data(to_integer(unsigned(source_select_3)));
                 data_tag_out_3 <= '0';
@@ -130,15 +132,20 @@ begin
 
                 else
                     --sign extension--
-                    data_out_sig_3 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_3)))), 16));
+                    if (source_select_3 = dest_select_1 and wr1 = '1') then
+                        data_out_sig_3 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                    else
+                        data_out_sig_3 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_3)))), 16));
+                    end if;
+                    
                     data_tag_out_3 <= '1';
 
                 end if;
             end if;
     end process source_read_3;
   
-    source_read_4: process(source_select_4, arf_data, rrf_data)
-        begin 
+    source_read_4: process(source_select_4, arf_data, rrf_data, dest_select_1, wr1, tag_1)
+        begin
             if (arf_valid(to_integer(unsigned(source_select_4))) = '1') then
                 data_out_sig_4 <= arf_data(to_integer(unsigned(source_select_4)));
                 data_tag_out_4 <= '0';
@@ -150,7 +157,12 @@ begin
 
                 else
                     --sign extension--
-                    data_out_sig_4 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_4)))), 16));
+                    if (source_select_4 = dest_select_1 and wr1 = '1') then
+                        data_out_sig_4 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                    else
+                        data_out_sig_4 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_4)))), 16));
+                    end if;
+                    
                     data_tag_out_4 <= '1';
 
                 end if;
@@ -158,23 +170,27 @@ begin
     end process source_read_4;
 
 
-    destination_allocate_1: process(clk, dest_select_1, tag_1)
+    destination_allocate_1: process(clk, wr1, dest_select_1, tag_1)
         begin
             if rising_edge(clk) then
-                arf_tag(to_integer(unsigned(dest_select_1))) <= tag_1;
-                arf_valid(to_integer(unsigned(dest_select_1))) <= '0';
-                rrf_valid(to_integer(unsigned(tag_1))) <= '0';
-                rrf_busy(to_integer(unsigned(tag_1))) <= '1';
+                if (wr1 = '1') then
+                    arf_tag(to_integer(unsigned(dest_select_1))) <= tag_1;
+                    arf_valid(to_integer(unsigned(dest_select_1))) <= '0';
+                    rrf_valid(to_integer(unsigned(tag_1))) <= '0';
+                    rrf_busy(to_integer(unsigned(tag_1))) <= '1';
+                end if;
             end if;
     end process destination_allocate_1;
 
-    destination_allocate_2: process(clk, dest_select_2, tag_2)
+    destination_allocate_2: process(clk, wr2, dest_select_2, tag_2)
         begin
             if rising_edge(clk) then
-                arf_tag(to_integer(unsigned(dest_select_2))) <= tag_2;
-                arf_valid(to_integer(unsigned(dest_select_2))) <= '0';
-                rrf_valid(to_integer(unsigned(tag_2))) <= '0';
-                rrf_busy(to_integer(unsigned(tag_2))) <= '1';
+                if (wr2 = '1') then
+                    arf_tag(to_integer(unsigned(dest_select_2))) <= tag_2;
+                    arf_valid(to_integer(unsigned(dest_select_2))) <= '0';
+                    rrf_valid(to_integer(unsigned(tag_2))) <= '0';
+                    rrf_busy(to_integer(unsigned(tag_2))) <= '1';
+                end if;
             end if;
     end process destination_allocate_2;
 
@@ -182,7 +198,7 @@ begin
     instr_finish_1: process(clk, finish_alu_1, data_alu_1, rr_alu_1)
         begin
             if rising_edge(clk) then
-                if (finish_alu_1 = '1' and wr_1 = '1') then
+                if (finish_alu_1 = '1') then
                     rrf_data(to_integer(unsigned(rr_alu_1))) <= data_alu_1;
                     rrf_valid(to_integer(unsigned(rr_alu_1))) <= '1';
                 end if;
@@ -192,7 +208,7 @@ begin
     instr_finish_2: process(clk, finish_alu_2, data_alu_2, rr_alu_2)
         begin
             if rising_edge(clk) then
-                if (finish_alu_2 = '1' and wr_2 = '1') then
+                if (finish_alu_2 = '1') then
                     rrf_data(to_integer(unsigned(rr_alu_2))) <= data_alu_2;
                     rrf_valid(to_integer(unsigned(rr_alu_2))) <= '1';
                 end if;
@@ -207,7 +223,7 @@ begin
         begin
             if rising_edge(clk) then
                 if (complete = '1') then
-                    reg_num := to_integer(unsigned(dest));
+                    reg_num := to_integer(unsigned(inst_complete_dest));
                     desired_tag := to_integer(unsigned(arf_tag(reg_num)));
                     arf_data(reg_num) <= rrf_data(desired_tag);
                     rrf_busy(desired_tag) <= '0';
