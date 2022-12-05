@@ -96,6 +96,13 @@ architecture behavioural of IDStage is
         );
     end component;
 
+    component DestinationWriteChecker is
+        port(
+            instruction: in std_logic_vector(15 downto 0);
+            dest_write: out std_logic
+        );
+    end component;
+
     signal wr_inst1_sig, wr_inst2_sig: std_logic := '1';
     signal wr_ALU1_sig, wr_ALU2_sig: std_logic := '1';
 
@@ -113,6 +120,8 @@ architecture behavioural of IDStage is
 
     signal zero_rr_tag_inst1, zero_rr_tag_inst2: std_logic_vector(7 downto 0) := (others => '0');
     signal zero_rf_full_first, zero_rf_full_second: std_logic;
+
+    signal data_reg_wr1, data_reg_wr2: std_logic;
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
     -- we assume that the RS is large enough so no capacity stalls occur
@@ -182,6 +191,18 @@ begin
             valid_second => data_rf_full_second
         );
 
+    dest_write_checker_inst1: DestinationWriteChecker
+        port map(
+            instruction => IFID_IMem_Op(31 downto 16),
+            dest_write => data_reg_wr1
+        );
+    
+    dest_write_checker_inst2: DestinationWriteChecker
+        port map(
+            instruction => IFID_IMem_Op(15 downto 0),
+            dest_write => data_reg_wr2
+        );
+
     data_register_file: DataRegisterFile
         port map(
             clk => clk,
@@ -192,8 +213,8 @@ begin
             source_select_3 => opr_addr1_inst2,
             source_select_4 => opr_addr2_inst2,
 
-            wr1 =>, 
-            wr2 =>,
+            wr1 => data_reg_wr1, 
+            wr2 => data_reg_wr2,
             dest_select_1 => dest_addr_inst1,
             dest_select_2 => dest_addr_inst2,
             tag_1 => data_rr_tag_inst1, 
