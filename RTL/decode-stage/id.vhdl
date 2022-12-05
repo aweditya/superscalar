@@ -110,6 +110,13 @@ architecture behavioural of IDStage is
         );
     end component;
 
+    component ZeroWriteChecker is
+        port(
+            instruction: in std_logic_vector(15 downto 0);
+            zero_write: out std_logic
+        );
+    end component;
+
     signal wr_inst1_sig, wr_inst2_sig: std_logic := '1';
     signal wr_ALU1_sig, wr_ALU2_sig: std_logic := '1';
 
@@ -130,6 +137,7 @@ architecture behavioural of IDStage is
 
     signal data_reg_wr1, data_reg_wr2: std_logic;
     signal carry_reg_wr1, carry_reg_wr2: std_logic;
+    signal zero_reg_wr1, zero_reg_wr2: std_logic;
 
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
@@ -318,13 +326,25 @@ begin
             valid_second => zero_rf_full_second
         );
 
-    flag_register_file: FlagRegisterFile
+    zero_write_checker_inst1: ZeroWriteChecker
+        port map(
+            instruction => IFID_IMem_Op(31 downto 16),
+            zero_write => zero_reg_wr1
+        );
+
+    zero_write_checker_inst2: ZeroWriteChecker
+        port map(
+            instruction => IFID_IMem_Op(15 downto 0),
+            zero_write => zero_reg_wr2
+        );
+
+    zero_register_file: FlagRegisterFile
         port map(
             clk => clk, 
             clr => clr,
 
-            wr1 =>, 
-            wr2 =>,
+            wr1 => zero_reg_wr1, 
+            wr2 => zero_reg_wr2,
             tag_1 => zero_rr_tag_inst1,
             tag_2 => zero_rr_tag_inst2,
 
