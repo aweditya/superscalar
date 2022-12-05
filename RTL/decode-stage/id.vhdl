@@ -7,9 +7,23 @@ entity IDStage is
         -- INPUTS
         clr: in std_logic;
         clk: in std_logic;
+
         IFID_inc_Op, IFID_PC_Op: in std_logic_vector(15 downto 0);
 		IFID_IMem_Op: in std_logic_vector(31 downto 0);
-        -- Will need to add more inputs to handle forwarding logic
+        
+        finish_alu_pipe1, finish_alu_pipe2: in std_logic;
+
+        data_rr_alu_1, data_rr_alu_2: in std_logic_vector(7 downto 0);
+        data_result_alu_1, data_result_alu_2: in std_logic_vector(15 downto 0);
+
+        carry_rr_alu_1, carry_rr_alu_2: in std_logic_vector(7 downto 0);
+        carry_result_alu_1, carry_result_alu_2: in std_logic_vector(0 downto 0);
+
+        zero_rr_alu_1, zero_rr_alu_2: in std_logic_vector(7 downto 0);
+        zero_result_alu_1, zero_result_alu_2: in std_logic_vector(0 downto 0);
+
+        inst_complete_exec: in std_logic;
+        inst_complete_exec_dest: in std_logic_vector(2 downto 0);
 
         -- OUTPUTS
         wr_inst1, wr_inst2: out std_logic; -- write bits for newly decoded instructions 
@@ -21,11 +35,7 @@ entity IDStage is
         imm6_inst1, imm6_inst2: out std_logic_vector(5 downto 0); -- imm6 values for the two instructions
         c_inst1, z_inst1, c_inst2, z_inst2: out std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
         valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: out std_logic; -- valid bits for first instruction
-        valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic; -- valid bits for second instruction
-        data_ALU1, data_ALU2: out std_logic_vector(15 downto 0); -- data forwarded from the execution pipelines
-        rr1_ALU1, rr1_ALU2, rr2_ALU1, rr2_ALU2, rr3_ALU1, rr3_ALU2: out std_logic_vector(7 downto 0); -- rr values coming from the ROB corresponding to execution pipeline outputs
-        c_ALU1_in, z_ALU1_in, c_ALU2_in, z_ALU2_in: out std_logic; -- carry and zero values forwarded from the execution pipelines
-        finished_ALU1, finished_ALU2: out std_logic -- finished bits coming from the execution pipelines
+        valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic -- valid bits for second instruction
     );
 end entity IDStage;
 
@@ -197,7 +207,7 @@ begin
 
     data_priority_encoder: DualPriorityEncoder
         generic map (
-            input_width => 2 ** 8;
+            input_width => 2 ** 8,
             output_width => 8
         )
         port map(
@@ -237,15 +247,15 @@ begin
             tag_1 => data_rr_tag_inst1, 
             tag_2 => data_rr_tag_inst2,
             
-            finish_alu_1 =>, 
-            finish_alu_2 =>,
-            rr_alu_1 =>, 
-            rr_alu_2 =>,
-            data_alu_1 =>, 
-            data_alu_2 =>,
+            finish_alu_1 => finish_alu_pipe1, 
+            finish_alu_2 => finish_alu_pipe2,
+            rr_alu_1 => data_rr_alu_1, 
+            rr_alu_2 => data_rr_alu_2,
+            data_alu_1 => data_result_alu_1, 
+            data_alu_2 => data_result_alu_2,
 
-            complete =>,
-            inst_complete_dest =>,
+            complete => inst_complete_exec,
+            inst_complete_dest => inst_complete_exec_dest,
 
             data_out_1 => opr1_inst1,
             data_out_2 => opr2_inst1,
@@ -262,7 +272,7 @@ begin
 
     carry_priority_encoder: DualPriorityEncoder
         generic map (
-            input_width => 2 ** 8;
+            input_width => 2 ** 8,
             output_width => 8
         )
         port map(
@@ -295,14 +305,14 @@ begin
             tag_1 => carry_rr_tag_inst1,
             tag_2 => carry_rr_tag_inst2,
 
-            finish_alu_1 =>,
-            finish_alu_2 =>,
-            rr_alu_1 =>, 
-            rr_alu_2 =>,
-            data_alu_1 =>,
-            data_alu_2 =>,
+            finish_alu_1 => finish_alu_pipe1,
+            finish_alu_2 => finish_alu_pipe2,
+            rr_alu_1 => carry_rr_alu_1, 
+            rr_alu_2 => carry_rr_alu_2,
+            data_alu_1 => carry_result_alu_1,
+            data_alu_2 => carry_result_alu_2,
 
-            complete =>,
+            complete => inst_complete_exec, 
 
             data_out_1 => c_inst1, 
             data_out_2 => c_inst2,
@@ -315,7 +325,7 @@ begin
 
     zero_priority_encoder: DualPriorityEncoder
         generic map (
-            input_width => 2 ** 8;
+            input_width => 2 ** 8,
             output_width => 8
         )
         port map(
@@ -348,14 +358,14 @@ begin
             tag_1 => zero_rr_tag_inst1,
             tag_2 => zero_rr_tag_inst2,
 
-            finish_alu_1 =>,
-            finish_alu_2 =>,
-            rr_alu_1 =>, 
-            rr_alu_2 =>,
-            data_alu_1 =>,
-            data_alu_2 =>,
+            finish_alu_1 => finish_alu_pipe1,
+            finish_alu_2 => finish_alu_pipe2,
+            rr_alu_1 => zero_rr_alu_1, 
+            rr_alu_2 => zero_rr_alu_2,
+            data_alu_1 => zero_result_alu_1,
+            data_alu_2 => zero_result_alu_2,
 
-            complete =>,
+            complete => inst_complete_exec,
 
             data_out_1 => z_inst1, 
             data_out_2 => z_inst2,
