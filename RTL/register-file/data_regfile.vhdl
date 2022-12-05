@@ -132,7 +132,7 @@ begin
 
                 else
                     --sign extension--
-                    if (source_select_3 = dest_select_1) then
+                    if (source_select_3 = dest_select_1 and wr1 = '1') then
                         data_out_sig_3 <= std_logic_vector(resize(unsigned(tag_1), 16));
                     else
                         data_out_sig_3 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_3)))), 16));
