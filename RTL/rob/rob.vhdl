@@ -15,32 +15,32 @@ entity rob is
         pc_inst1, pc_inst2: in std_logic_vector(15 downto 0); -- PC values for writing the newly decoded instructions
         pc_ALU1, pc_ALU2: in std_logic_vector(15 downto 0); -- PC values for identifying the newly executed instructions
         value_ALU1, value_ALU2: in std_logic_vector(15 downto 0); -- final output values obtained from the execution pipelines
-        dest_inst1, dest_inst2: in std_logic_vector(4 downto 0); -- destination registers for newly decoded instructions
+        dest_inst1, dest_inst2: in std_logic_vector(2 downto 0); -- destination registers for newly decoded instructions
         rr1_inst1, rr1_inst2: in std_logic_vector(7 downto 0); -- RR1 for newly decoded instructions
         c_ALU1, z_ALU1, c_ALU2, z_ALU2: in std_logic; -- c and z values obtained from the execution pipelines
         rr2_inst1, rr2_inst2: in std_logic_vector(7 downto 0); -- RR2 for newly decoded instructions
         rr3_inst1, rr3_inst2: in std_logic_vector(7 downto 0); -- RR3 for newly decoded instructions
 
         -- OUTPUTS -------------------------------------------------------------------------------------------
-        value_out: out std_logic_vector(15 downto 0); -- output value which will be written to RRF
         rr1_ALU1, rr1_ALU2: out std_logic_vector(7 downto 0); -- RR1 values for both ALU pipelines to which value is written to
         rr2_ALU1, rr2_ALU2, rr3_ALU1, rr3_ALU2: out std_logic_vector(7 downto 0); -- RR2, RR3 values for both ALU pipelines to which flags are written to
-        dest_out: out std_logic_vector(4 downto 0); -- destination register for final output
+        dest_out: out std_logic_vector(2 downto 0); -- destination register for final output
         full_out, empty_out: out std_logic -- full and empty bits for the ROB Buffer
+        completed: out std_logic; -- bit for when an instruction is completed
 	);
 end rob;
 
 architecture behavioural of rob is
     -- defining the types required for different-sized columns
     type rob_type_16 is array(size-1 downto 0) of std_logic_vector(15 downto 0);
-    type rob_type_5 is array(size-1 downto 0) of std_logic_vector(4 downto 0);
+    type rob_type_3 is array(size-1 downto 0) of std_logic_vector(2 downto 0);
     type rob_type_8 is array(size-1 downto 0) of std_logic_vector(7 downto 0);
     type rob_type_1 is array(size-1 downto 0) of std_logic;
 
     -- defining the required columns, each with (size) entries
     signal rob_pc: rob_type_16:= (others => (others => '0'));
     signal rob_value: rob_type_16:= (others => (others => '0'));
-    signal rob_dest: rob_type_5:= (others => (others => '0'));
+    signal rob_dest: rob_type_3:= (others => (others => '0'));
     signal rob_rr1: rob_type_8:= (others => (others => '0'));
     signal rob_c: rob_type_1:= (others => '0');
     signal rob_rr2: rob_type_8:= (others => (others => '0'));
@@ -202,9 +202,8 @@ begin
         
 
     -- reads values from the entry pointed to by rd_index
-    value_out <= rob_value(rd_index);
     dest_out <= rob_dest(rd_index);
-    rob_completed(rd_index) <= '1';
+    completed <= rob_completed(rd_index);
 
     -- sets the full and empty bits to take care of stalls
     full  <= '1' when count = size else '0';
