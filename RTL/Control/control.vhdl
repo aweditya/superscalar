@@ -25,7 +25,7 @@ ENTITY Control IS
         adv_rob : OUT STD_LOGIC;
         adv_wb : OUT STD_LOGIC;
         flush_out : OUT STD_LOGIC; -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
-        -- stall : OUT STD_LOGIC -- For completeness sake, will remove if not required.
+        stall : OUT STD_LOGIC -- For completeness sake, will remove if not required.
         end_of_program : OUT STD_LOGIC -- This will be used to stop the pipeline. Equivalent to a permanent stall, differs in functioning.
     );
 END Control;
@@ -165,7 +165,7 @@ BEGIN
             else
                 adv_rob <= all_advance AND wr_wb_regfile;
             end if;
-            flush_out<=flush_request;
+            flush_out <= flush_request;
         END IF;
     END PROCESS;
     
