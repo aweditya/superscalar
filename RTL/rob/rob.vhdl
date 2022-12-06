@@ -20,7 +20,6 @@ entity rob is
         c_ALU1, z_ALU1, c_ALU2, z_ALU2: in std_logic; -- c and z values obtained from the execution pipelines
         rr2_inst1, rr2_inst2: in std_logic_vector(7 downto 0); -- RR2 for newly decoded instructions
         rr3_inst1, rr3_inst2: in std_logic_vector(7 downto 0); -- RR3 for newly decoded instructions
-        finished_ALU1, finished_ALU2: in std_logic; -- finished bits obtained from the execution pipelines
 
         -- OUTPUTS -------------------------------------------------------------------------------------------
         value_out: out std_logic_vector(15 downto 0); -- output value which will be written to RRF
@@ -154,7 +153,7 @@ begin
                         rob_value(i) <= value_ALU1;
                         rob_c(i) <= c_ALU1;
                         rob_z(i) <= z_ALU1;
-                        rob_finished(i) <= finished_ALU1;
+                        rob_finished(i) <= '1';
                     end if;
                     exit;
                 end loop;
@@ -166,10 +165,7 @@ begin
                         rob_value(i) <= value_ALU2;
                         rob_c(i) <= c_ALU2;
                         rob_z(i) <= z_ALU2;
-                        rob_finished(i) <= finished_ALU2;
-                        rr1_ALU2 <= rob_rr1(i);
-                        rr2_ALU2 <= rob_rr2(i);
-                        rr3_ALU2 <= rob_rr3(i);
+                        rob_finished(i) <= '1';
                     end if;
                     exit;
                 end loop;
