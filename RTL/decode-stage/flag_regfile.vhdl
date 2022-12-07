@@ -61,7 +61,7 @@ begin
         end if;
     end process clear;
 
-    source_read_1: process(arf_data, rrf_data)
+    source_read_1: process(arf_data, rrf_data, arf_tag, arf_valid, rrf_valid)
         begin 
             if (arf_valid = '1') then
                 data_out_sig_1 <= std_logic_vector(resize(unsigned(arf_data), 8));
@@ -81,26 +81,26 @@ begin
             end if;
     end process source_read_1;
      
-    source_read_2: process(arf_data, rrf_data, wr1, tag_1)
+    source_read_2: process(arf_data, rrf_data, arf_tag, arf_valid, rrf_valid, wr1, tag_1)
         begin 
             if (arf_valid = '1') then
-                data_out_sig_1 <= std_logic_vector(resize(unsigned(arf_data), 8));
-                data_tag_out_1 <= '0';
+                data_out_sig_2 <= std_logic_vector(resize(unsigned(arf_data), 8));
+                data_tag_out_2 <= '0';
 
             else
                 if (rrf_valid(to_integer(unsigned(arf_tag)))) = '1' then
-                    data_out_sig_1 <= std_logic_vector(resize(unsigned(rrf_data(to_integer(unsigned(arf_tag)))), 8));
-                    data_tag_out_1 <= '0';
+                    data_out_sig_2 <= std_logic_vector(resize(unsigned(rrf_data(to_integer(unsigned(arf_tag)))), 8));
+                    data_tag_out_2 <= '0';
 
                 else
                     --sign extension--
                     if (wr1 = '1') then
-                        data_out_sig_1 <= tag_1;
+                        data_out_sig_2 <= tag_1;
                     else
-                        data_out_sig_1 <= arf_tag;
+                        data_out_sig_2 <= arf_tag;
                     end if;
                     
-                    data_tag_out_1 <= '1';
+                    data_tag_out_2 <= '1';
 
                 end if;
             end if;
