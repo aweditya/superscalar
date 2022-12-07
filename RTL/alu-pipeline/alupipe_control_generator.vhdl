@@ -94,4 +94,20 @@ begin
             alu_select <= "00";
         end if;
     end process generate_alu_select_process;
+
+    modify_carry_process: process(control_in)
+    begin
+        if (control_in(5 downto 2) = "0001" or control_in(5 downto 2) = "0000") then
+            modify_carry <= '1';
+        else 
+            modify_carry <= '0';
+        end if;
+    end process modify_carry_process;
+
+    modify_zero_process: process(control_in)
+    begin
+        modify_zero <= '1';
+    end process modify_zero_process;
+
+    control_out <= mux_select & alu_select & modify_carry & modify_zero;
 end architecture behavioural;
