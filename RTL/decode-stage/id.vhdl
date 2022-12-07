@@ -147,12 +147,39 @@ architecture behavioural of IDStage is
     signal zero_reg_wr1, zero_reg_wr2: std_logic;
 
 begin
-    -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
-    -- we assume that the RS is large enough so no capacity stalls occur
-    instruction_write_control_process: process(wr_inst1_sig, wr_inst2_sig)
+    -- Control logic for wr_inst1, wr_inst2 (if the RS or register files are full, we cannot write into it)
+    -- For the time being, I am integrating the logic for handling a filled register file. To handle the 
+    -- RS capacity stall, we can use the 'full' signal. However, this should ideally be two signals - 'full'
+    -- and 'just_full' because it is possible there is space for just one instruction and not both.
+    instruction_write_control_process: process(data_reg_wr1, data_rf_full_first, data_reg_wr2, data_rf_full_second, carry_reg_wr1, carry_rf_full_first, carry_reg_wr2, carry_rf_full_second, zero_reg_wr1, zero_rf_full_first, zero_reg_wr2, zero_rf_full_second)
+        variable write_inst1, write_inst2 : std_logic := '1';
     begin
-        wr_inst1_sig <= '1';
-        wr_inst2_sig <= '1';
+        if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
+            write_inst1 := '0';
+        end if;
+
+        if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
+            write_inst1 := '0';
+        end if;
+
+        if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
+            write_inst1 := '0';
+        end if;
+
+        if (data_reg_wr2 = '1' and data_rf_full_second = '0') then
+            write_inst2 := '0';
+        end if;
+
+        if (carry_reg_wr2 = '1' and carry_rf_full_second = '0') then
+            write_inst2 := '0';
+        end if;
+
+        if (zero_reg_wr2 = '1' and zero_rf_full_second = '0') then
+            write_inst2 := '0';
+        end if;
+
+        wr_inst1_sig <= write_inst1;
+        wr_inst2_sig <= write_inst2;
     end process instruction_write_control_process;
 
     wr_inst1 <= wr_inst1_sig;
