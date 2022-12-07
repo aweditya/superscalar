@@ -9,7 +9,7 @@ entity IDStage is
         clk: in std_logic;
 
         IFID_inc_Op, IFID_PC_Op: in std_logic_vector(15 downto 0);
-		IFID_IMem_Op: in std_logic_vector(31 downto 0);
+        IFID_IMem_Op: in std_logic_vector(31 downto 0);
         
         finish_alu_pipe1, finish_alu_pipe2: in std_logic;
 
@@ -25,11 +25,14 @@ entity IDStage is
         inst_complete_exec: in std_logic;
         inst_complete_exec_dest: in std_logic_vector(2 downto 0);
 
+        -- For handing RS capacity stalls,
+        -- rs_almost_full indicates if the RS has just one entry left
+        -- rs_full indicates if the RS has no entries left
+        rs_almost_full, rs_full: in std_logic;
+
         -- OUTPUTS
         wr_inst1, wr_inst2: out std_logic; -- write bits for newly decoded instructions 
-        wr_ALU1, wr_ALU2: out std_logic; -- write bits for newly executed instructions
-        rd_ALU1, rd_ALU2: out std_logic;  -- read bits for issuing ready instructions
-		control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
+        control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: out std_logic_vector(15 downto 0); -- pc values for the two instructions
         opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: out std_logic_vector(15 downto 0); -- operand values for the two instructions
         imm6_inst1, imm6_inst2: out std_logic_vector(5 downto 0); -- imm6 values for the two instructions
@@ -128,7 +131,6 @@ architecture behavioural of IDStage is
     end component;
 
     signal wr_inst1_sig, wr_inst2_sig: std_logic := '1';
-    signal wr_ALU1_sig, wr_ALU2_sig: std_logic := '1';
 
     signal opr_addr1_inst1, opr_addr2_inst1, opr_addr1_inst2, opr_addr2_inst2: std_logic_vector(2 downto 0) := (others => '0');
     signal dest_addr_inst1, dest_addr_inst2: std_logic_vector(2 downto 0) := (others => '0'); 
@@ -150,26 +152,63 @@ architecture behavioural of IDStage is
     signal zero_reg_wr1, zero_reg_wr2: std_logic;
 
 begin
-    -- Control logic for wr_inst1, wr_inst2 (if the RS is full, we cannot write into it). For the time being,
-    -- we assume that the RS is large enough so no capacity stalls occur
-    instruction_write_control_process: process(wr_inst1_sig, wr_inst2_sig)
+    -- Control logic for wr_inst1, wr_inst2 (if the RS or register files are full, we cannot write into it)
+    instruction_write_control_process: process(rs_full, rs_almost_full, data_reg_wr1, data_rf_full_first, data_reg_wr2, data_rf_full_second, carry_reg_wr1, carry_rf_full_first, carry_reg_wr2, carry_rf_full_second, zero_reg_wr1, zero_rf_full_first, zero_reg_wr2, zero_rf_full_second)
+        variable write_inst1, write_inst2 : std_logic := '1';
     begin
-        wr_inst1_sig <= '1';
-        wr_inst2_sig <= '1';
+        if (rs_full = '1') then
+            -- No space in RS
+            write_inst1 := '0';
+            write_inst2 := '0';
+
+        elsif (rs_almost_full = '1') then
+            -- One space left in RS so turn off write for instruction 2, check write for instruction 1
+            if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+    
+            if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+    
+            if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+
+            write_inst2 := '0';
+        else
+            -- More than two entries in the RS. Check write for each instruction
+            if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+
+            if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+
+            if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+
+            if (data_reg_wr2 = '1' and data_rf_full_second = '0') then
+                write_inst2 := '0';
+            end if;
+    
+            if (carry_reg_wr2 = '1' and carry_rf_full_second = '0') then
+                write_inst2 := '0';
+            end if;
+    
+            if (zero_reg_wr2 = '1' and zero_rf_full_second = '0') then
+                write_inst2 := '0';
+            end if;
+        end if;
+        
+        wr_inst1_sig <= write_inst1;
+        wr_inst2_sig <= write_inst2;
     end process instruction_write_control_process;
 
     wr_inst1 <= wr_inst1_sig;
     wr_inst2 <= wr_inst2_sig;
-    --
-
-    -- TODO 
-    alu_write_control_process: process(wr_ALU1_sig, wr_ALU2_sig)
-    begin
-
-    end process alu_write_control_process;
-
-    wr_ALU1 <= wr_ALU1_sig;
-    wr_ALU2 <= wr_ALU2_sig;
     --
 
     -- Opcode + last two bits for each instruction
