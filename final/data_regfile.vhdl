@@ -19,7 +19,9 @@ entity DataRegisterFile is
         inst_complete_dest: in std_logic_vector(2 downto 0);
 
         data_out_1, data_out_2, data_out_3, data_out_4: out std_logic_vector(15 downto 0);
-        data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic
+        data_tag_1, data_tag_2, data_tag_3, data_tag_4: out std_logic;
+
+        rrf_busy_out: out std_logic_vector((integer'(2)**8)-1 downto 0)
     );
 end entity DataRegisterFile;
 
@@ -119,7 +121,7 @@ begin
  
     -- Including dest_select_1 and tag_1 to handle dependencies within the same fetch group
     -- Convention: source_read_1 and source_read_2 are operands for the first instruction
-    source_read_3: process(source_select_3, arf_data, rrf_data, dest_select_1, tag_1)
+    source_read_3: process(source_select_3, arf_data, rrf_data, dest_select_1, wr1, tag_1)
         begin
             if (arf_valid(to_integer(unsigned(source_select_3))) = '1') then
                 data_out_sig_3 <= arf_data(to_integer(unsigned(source_select_3)));
@@ -144,7 +146,7 @@ begin
             end if;
     end process source_read_3;
   
-    source_read_4: process(source_select_4, arf_data, rrf_data, dest_select_1, tag_1)
+    source_read_4: process(source_select_4, arf_data, rrf_data, dest_select_1, wr1, tag_1)
         begin
             if (arf_valid(to_integer(unsigned(source_select_4))) = '1') then
                 data_out_sig_4 <= arf_data(to_integer(unsigned(source_select_4)));
@@ -157,7 +159,7 @@ begin
 
                 else
                     --sign extension--
-                    if (source_select_4 = dest_select_1) then
+                    if (source_select_4 = dest_select_1 and wr1 = '1') then
                         data_out_sig_4 <= std_logic_vector(resize(unsigned(tag_1), 16));
                     else
                         data_out_sig_4 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_4)))), 16));
@@ -231,6 +233,13 @@ begin
                 end if;
             end if;
     end process instr_complete;
+
+    get_rrf_busy_process: process(rrf_busy)
+    begin
+        for i in 0 to (integer'(2)**8)-1 loop
+            rrf_busy_out(i) <= rrf_busy(i);
+        end loop;
+    end process get_rrf_busy_process;
 
     data_out_1 <= data_out_sig_1;
     data_out_2 <= data_out_sig_2;

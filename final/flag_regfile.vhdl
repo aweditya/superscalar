@@ -5,10 +5,8 @@ use ieee.numeric_std.all;
 entity FlagRegisterFile is 
     port(
         clk, clr: in std_logic;
-        -- source_select_1, source_select_2: in std_logic;
 
         wr1, wr2: in std_logic;
-        -- dest_select_1, dest_select_2: in std_logic;
         tag_1, tag_2: in std_logic_vector(7 downto 0);
 
         finish_alu_1, finish_alu_2: in std_logic;
@@ -18,7 +16,9 @@ entity FlagRegisterFile is
         complete: in std_logic;
 
         data_out_1, data_out_2: out std_logic_vector(7 downto 0);
-        data_tag_1, data_tag_2: out std_logic
+        data_tag_1, data_tag_2: out std_logic;
+
+        rrf_busy_out: out std_logic_vector((integer'(2)**8)-1 downto 0)
     );
 end entity FlagRegisterFile;
 
@@ -61,27 +61,7 @@ begin
         end if;
     end process clear;
 
-    source_read_1: process(arf_data, rrf_data)
-        begin 
-            if (arf_valid = '1') then
-                data_out_sig_1 <= std_logic_vector(resize(unsigned(arf_data), 8));
-                data_tag_out_1 <= '0';
-
-            else
-                if (rrf_valid(to_integer(unsigned(arf_tag)))) = '1' then
-                    data_out_sig_1 <= std_logic_vector(resize(unsigned(arf_tag), 8));
-                    data_tag_out_1 <= '0';
-
-                else
-                    --sign extension--
-                    data_out_sig_1 <= arf_tag;
-                    data_tag_out_1 <= '1';
-
-                end if;
-            end if;
-    end process source_read_1;
-     
-    source_read_2: process(arf_data, rrf_data, wr1, tag_1)
+    source_read_1: process(arf_data, rrf_data, arf_tag, arf_valid, rrf_valid)
         begin 
             if (arf_valid = '1') then
                 data_out_sig_1 <= std_logic_vector(resize(unsigned(arf_data), 8));
@@ -94,13 +74,33 @@ begin
 
                 else
                     --sign extension--
+                    data_out_sig_1 <= arf_tag;
+                    data_tag_out_1 <= '1';
+
+                end if;
+            end if;
+    end process source_read_1;
+     
+    source_read_2: process(arf_data, rrf_data, arf_tag, arf_valid, rrf_valid, wr1, tag_1)
+        begin 
+            if (arf_valid = '1') then
+                data_out_sig_2 <= std_logic_vector(resize(unsigned(arf_data), 8));
+                data_tag_out_2 <= '0';
+
+            else
+                if (rrf_valid(to_integer(unsigned(arf_tag)))) = '1' then
+                    data_out_sig_2 <= std_logic_vector(resize(unsigned(rrf_data(to_integer(unsigned(arf_tag)))), 8));
+                    data_tag_out_2 <= '0';
+
+                else
+                    --sign extension--
                     if (wr1 = '1') then
-                        data_out_sig_1 <= tag_1;
+                        data_out_sig_2 <= tag_1;
                     else
-                        data_out_sig_1 <= arf_tag;
+                        data_out_sig_2 <= arf_tag;
                     end if;
                     
-                    data_tag_out_1 <= '1';
+                    data_tag_out_2 <= '1';
 
                 end if;
             end if;
@@ -166,6 +166,13 @@ begin
                 end if;
             end if;
     end process instr_complete;
+
+    get_rrf_busy_process: process(rrf_busy)
+    begin
+        for i in 0 to (integer'(2)**8)-1 loop
+            rrf_busy_out(i) <= rrf_busy(i);
+        end loop;
+    end process get_rrf_busy_process;
 
     data_out_1 <= data_out_sig_1;
     data_out_2 <= data_out_sig_2;
