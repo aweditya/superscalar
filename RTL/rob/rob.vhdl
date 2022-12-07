@@ -25,7 +25,7 @@ entity rob is
         rr1_ALU1, rr1_ALU2: out std_logic_vector(7 downto 0); -- RR1 values for both ALU pipelines to which value is written to
         rr2_ALU1, rr2_ALU2, rr3_ALU1, rr3_ALU2: out std_logic_vector(7 downto 0); -- RR2, RR3 values for both ALU pipelines to which flags are written to
         dest_out: out std_logic_vector(2 downto 0); -- destination register for final output
-        completed: out std_logic; -- bit for when an instruction is completed
+        completed: out std_logic -- bit for when an instruction is completed
 	);
 end rob;
 

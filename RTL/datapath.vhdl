@@ -80,7 +80,7 @@ ARCHITECTURE arch OF datapath IS
             clk : IN STD_LOGIC; -- input clock
             clr : IN STD_LOGIC; -- clear bit
             wr_inst1, wr_inst2 : IN STD_LOGIC; -- write bits for newly decoded instructions 
-            wr_ALU1, wr_ALU2 : IN STD_LOGIC; -- write bits for newly executed instructions
+            -- wr_ALU1, wr_ALU2 : IN STD_LOGIC; -- write bits for newly executed instructions
             rd_ALU1, rd_ALU2 : IN STD_LOGIC; -- read bits for issuing ready instructions
             control_inst1, control_inst2 : IN STD_LOGIC_VECTOR(5 DOWNTO 0); -- control values for the two instructions
             pc_inst1, pc_inst2 : IN STD_LOGIC_VECTOR(15 DOWNTO 0); -- pc values for the two instructions
@@ -96,7 +96,7 @@ ARCHITECTURE arch OF datapath IS
 
             -- OUTPUTS
             pc_ALU1, pc_ALU2 : OUT STD_LOGIC_VECTOR(15 DOWNTO 0); -- pc values forwarded to each execution pipeline
-            control_ALU1, control_ALU2 : STD_LOGIC_VECTOR(5 DOWNTO 0); -- control to go to the control generator for the ALU pipelines
+            control_ALU1, control_ALU2 : OUT STD_LOGIC_VECTOR(5 DOWNTO 0); -- control to go to the control generator for the ALU pipelines
             ra_ALU1, rb_ALU1, ra_ALU2, rb_ALU2 : OUT STD_LOGIC_VECTOR(15 DOWNTO 0); -- operand values forwarded to each execution pipeline
             imm6_ALU1, imm6_ALU2 : OUT STD_LOGIC_VECTOR(5 DOWNTO 0); -- imm6 values forwarded to each execution pipeline
             c_ALU1_out, z_ALU1_out, c_ALU2_out, z_ALU2_out : OUT STD_LOGIC; -- carry and zero values forwarded to each execution pipeline
@@ -180,6 +180,7 @@ ARCHITECTURE arch OF datapath IS
             adv_wb : OUT STD_LOGIC;
             rs_full : OUT STD_LOGIC; --connect to rs_almost_full, rs_full of id stage
             rs_almost_full : OUT STD_LOGIC;
+            adv_rob : OUT STD_LOGIC;
             flush_out : OUT STD_LOGIC; -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
             stall_out : OUT STD_LOGIC -- For completeness sake, will remove if not required.
 
@@ -298,6 +299,9 @@ BEGIN
         zero_result_alu_2(0) => z_ALU2_EW,
         inst_complete_exec => completed_WD,
         inst_complete_exec_dest => dest_WD,
+        rs_almost_full => CT_rs_almost_full, 
+        rs_full => CT_rs_full,
+
 
         opr1_inst1 => opr1_inst1_DR,
         opr2_inst1 => opr2_inst1_DR,
@@ -478,7 +482,7 @@ BEGIN
         --INPUTS------------------------------------
         clk => clk,
         rst => reset,
-        -- wr_fetch =>,
+        wr_fetch => '1',
         rs_full_input => full_out_CT,
         rs_almost_full_input => almost_full_out_CT, --connect to almost_full_out of rs
         wr_wb_mem => from_future_default_set,
@@ -492,6 +496,7 @@ BEGIN
         rs_full => CT_rs_full, --connect to rs_almost_full, rs_full of id stage
         rs_almost_full => CT_rs_almost_full,
         flush_out => CT_flush_out, -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
-        stall_out => CT_stall_out
+        stall_out => CT_stall_out,
+        adv_rob => open
     );
 END ARCHITECTURE;

@@ -18,7 +18,7 @@ ENTITY Control IS
         wr_wb_mem : IN STD_LOGIC;
         wr_wb_regfile : IN STD_LOGIC;
 
-        end_of_program : IN STD_LOGIC -- This will be used to stop the pipeline. Equivalent to a permanent stall, differs in functioning.
+        end_of_program : IN STD_LOGIC; -- This will be used to stop the pipeline. Equivalent to a permanent stall, differs in functioning.
         -- wr_rob : IN STD_LOGIC;
         -- wr_decode : IN STD_LOGIC;
         -- wr_ALU : IN STD_LOGIC; --iffy
@@ -31,11 +31,11 @@ ENTITY Control IS
         rs_almost_full: out std_logic;
 
         flush_out : OUT STD_LOGIC; -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
-        stall_out : OUT STD_LOGIC -- For completeness sake, will remove if not required.
+        stall_out : OUT STD_LOGIC; -- For completeness sake, will remove if not required.
         
 
         -- adv_decode : OUT STD_LOGIC; --In our implementation, we have ifid together, will handle manually if required.
-        -- adv_rob : OUT STD_LOGIC;
+        adv_rob : OUT STD_LOGIC
         -- adv_ALU : OUT STD_LOGIC; --Here, we have the signal for ALU pipeline. Ideally, we should have a control signal for each of the pipelines.
 
     );
