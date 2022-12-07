@@ -9,7 +9,7 @@ entity IDStage is
         clk: in std_logic;
 
         IFID_inc_Op, IFID_PC_Op: in std_logic_vector(15 downto 0);
-		IFID_IMem_Op: in std_logic_vector(31 downto 0);
+        IFID_IMem_Op: in std_logic_vector(31 downto 0);
         
         finish_alu_pipe1, finish_alu_pipe2: in std_logic;
 
@@ -27,9 +27,7 @@ entity IDStage is
 
         -- OUTPUTS
         wr_inst1, wr_inst2: out std_logic; -- write bits for newly decoded instructions 
-        wr_ALU1, wr_ALU2: out std_logic; -- write bits for newly executed instructions
-        rd_ALU1, rd_ALU2: out std_logic;  -- read bits for issuing ready instructions
-		control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
+        control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: out std_logic_vector(15 downto 0); -- pc values for the two instructions
         opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: out std_logic_vector(15 downto 0); -- operand values for the two instructions
         imm6_inst1, imm6_inst2: out std_logic_vector(5 downto 0); -- imm6 values for the two instructions
@@ -128,7 +126,6 @@ architecture behavioural of IDStage is
     end component;
 
     signal wr_inst1_sig, wr_inst2_sig: std_logic := '1';
-    signal wr_ALU1_sig, wr_ALU2_sig: std_logic := '1';
 
     signal opr_addr1_inst1, opr_addr2_inst1, opr_addr1_inst2, opr_addr2_inst2: std_logic_vector(2 downto 0) := (others => '0');
     signal dest_addr_inst1, dest_addr_inst2: std_logic_vector(2 downto 0) := (others => '0'); 
@@ -160,16 +157,6 @@ begin
 
     wr_inst1 <= wr_inst1_sig;
     wr_inst2 <= wr_inst2_sig;
-    --
-
-    -- TODO 
-    alu_write_control_process: process(wr_ALU1_sig, wr_ALU2_sig)
-    begin
-
-    end process alu_write_control_process;
-
-    wr_ALU1 <= wr_ALU1_sig;
-    wr_ALU2 <= wr_ALU2_sig;
     --
 
     -- Opcode + last two bits for each instruction
