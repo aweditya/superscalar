@@ -25,7 +25,6 @@ entity rob is
         rr1_ALU1, rr1_ALU2: out std_logic_vector(7 downto 0); -- RR1 values for both ALU pipelines to which value is written to
         rr2_ALU1, rr2_ALU2, rr3_ALU1, rr3_ALU2: out std_logic_vector(7 downto 0); -- RR2, RR3 values for both ALU pipelines to which flags are written to
         dest_out: out std_logic_vector(2 downto 0); -- destination register for final output
-        full_out, empty_out: out std_logic -- full and empty bits for the ROB Buffer
         completed: out std_logic; -- bit for when an instruction is completed
 	);
 end rob;
@@ -78,7 +77,8 @@ begin
         end if;
     end process p0;
     -- responsible for FIFO logic and adding newly decoded instructions to the ROB
-    p1: process(clk, wr_inst1, wr_inst2, rd, full, empty)
+    p1: process(clk, wr_inst1, wr_inst2, rd, full, empty, pc_inst1, pc_inst2, dest_inst1, dest_inst2, rr1_inst1, rr1_inst2, 
+    rr2_inst1, rr2_inst2, rr3_inst1, rr3_inst2)
         begin
         -- both write and read from the ROB Buffer happens at the rising edge of clock
         if rising_edge(clk) then
@@ -143,7 +143,7 @@ begin
     end process p1;
 
     -- responsible for writing output values from the execution pipelines
-    p2: process(clk, wr_ALU1, wr_ALU2, pc_ALU1, pc_ALU2)
+    p2: process(clk, wr_ALU1, wr_ALU2, pc_ALU1, pc_ALU2, value_ALU1, value_ALU2, c_ALU1, c_ALU2, z_ALU1, z_ALU2)
         begin
         if rising_edge(clk) then
             -- write executed data from ALU1 into corresponding ROB entry
@@ -154,8 +154,8 @@ begin
                         rob_c(i) <= c_ALU1;
                         rob_z(i) <= z_ALU1;
                         rob_finished(i) <= '1';
+                        exit;
                     end if;
-                    exit;
                 end loop;
             end if;
             -- write executed data from ALU2 into corresponding ROB entry
@@ -166,15 +166,15 @@ begin
                         rob_c(i) <= c_ALU2;
                         rob_z(i) <= z_ALU2;
                         rob_finished(i) <= '1';
+                        exit;
                     end if;
-                    exit;
                 end loop;
             end if;
         end if;
     end process p2;
 
     -- responsible for reading rename registers when an instruction is finished executing
-    p3: process(wr_ALU1, wr_ALU2, pc_ALU1, pc_ALU2)
+    p3: process(wr_ALU1, wr_ALU2, pc_ALU1, pc_ALU2, rob_rr1, rob_rr2, rob_rr3)
         begin
         -- read rename registers for ALU1 from corresponding ROB entry
         if (wr_ALU1 = '1') then
@@ -183,8 +183,8 @@ begin
                     rr1_ALU1 <= rob_rr1(i);
                     rr2_ALU1 <= rob_rr2(i);
                     rr3_ALU1 <= rob_rr3(i);
+                    exit;
                 end if;
-                exit;
             end loop;
         end if;
         -- read rename registers for ALU2 from corresponding ROB entry
@@ -194,21 +194,14 @@ begin
                     rr1_ALU2 <= rob_rr1(i);
                     rr2_ALU2 <= rob_rr2(i);
                     rr3_ALU2 <= rob_rr3(i);
+                    exit;
                 end if;
-                exit;
             end loop;
         end if;
     end process p3;
-        
-
+    
     -- reads values from the entry pointed to by rd_index
     dest_out <= rob_dest(rd_index);
-    completed <= rob_completed(rd_index);
-
-    -- sets the full and empty bits to take care of stalls
-    full  <= '1' when count = size else '0';
-    empty <= '1' when count = 0 else '0';
-    full_out <= full;
-    empty_out <= empty;       
+    completed <= rob_completed(rd_index);      
 
 end behavioural;
