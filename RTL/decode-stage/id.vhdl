@@ -25,6 +25,11 @@ entity IDStage is
         inst_complete_exec: in std_logic;
         inst_complete_exec_dest: in std_logic_vector(2 downto 0);
 
+        -- For handing RS capacity stalls,
+        -- rs_almost_full indicates if the RS has just one entry left
+        -- rs_full indicates if the RS has no entries left
+        rs_almost_full, rs_full: in std_logic;
+
         -- OUTPUTS
         wr_inst1, wr_inst2: out std_logic; -- write bits for newly decoded instructions 
         control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
@@ -148,36 +153,56 @@ architecture behavioural of IDStage is
 
 begin
     -- Control logic for wr_inst1, wr_inst2 (if the RS or register files are full, we cannot write into it)
-    -- For the time being, I am integrating the logic for handling a filled register file. To handle the 
-    -- RS capacity stall, we can use the 'full' signal. However, this should ideally be two signals - 'full'
-    -- and 'just_full' because it is possible there is space for just one instruction and not both.
-    instruction_write_control_process: process(data_reg_wr1, data_rf_full_first, data_reg_wr2, data_rf_full_second, carry_reg_wr1, carry_rf_full_first, carry_reg_wr2, carry_rf_full_second, zero_reg_wr1, zero_rf_full_first, zero_reg_wr2, zero_rf_full_second)
+    instruction_write_control_process: process(rs_full, rs_almost_full, data_reg_wr1, data_rf_full_first, data_reg_wr2, data_rf_full_second, carry_reg_wr1, carry_rf_full_first, carry_reg_wr2, carry_rf_full_second, zero_reg_wr1, zero_rf_full_first, zero_reg_wr2, zero_rf_full_second)
         variable write_inst1, write_inst2 : std_logic := '1';
     begin
-        if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
+        if (rs_full = '1') then
+            -- No space in RS
             write_inst1 := '0';
-        end if;
-
-        if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
-            write_inst1 := '0';
-        end if;
-
-        if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
-            write_inst1 := '0';
-        end if;
-
-        if (data_reg_wr2 = '1' and data_rf_full_second = '0') then
             write_inst2 := '0';
-        end if;
 
-        if (carry_reg_wr2 = '1' and carry_rf_full_second = '0') then
+        elsif (rs_almost_full = '1') then
+            -- One space left in RS so turn off write for instruction 2, check write for instruction 1
+            if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+    
+            if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+    
+            if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+
             write_inst2 := '0';
-        end if;
+        else
+            -- More than two entries in the RS. Check write for each instruction
+            if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
 
-        if (zero_reg_wr2 = '1' and zero_rf_full_second = '0') then
-            write_inst2 := '0';
-        end if;
+            if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
 
+            if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
+                write_inst1 := '0';
+            end if;
+
+            if (data_reg_wr2 = '1' and data_rf_full_second = '0') then
+                write_inst2 := '0';
+            end if;
+    
+            if (carry_reg_wr2 = '1' and carry_rf_full_second = '0') then
+                write_inst2 := '0';
+            end if;
+    
+            if (zero_reg_wr2 = '1' and zero_rf_full_second = '0') then
+                write_inst2 := '0';
+            end if;
+        end if;
+        
         wr_inst1_sig <= write_inst1;
         wr_inst2_sig <= write_inst2;
     end process instruction_write_control_process;
