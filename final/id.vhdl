@@ -39,7 +39,10 @@ entity IDStage is
         c_inst1, z_inst1, c_inst2, z_inst2: out std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
         valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: out std_logic; -- valid bits for first instruction
         valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic; -- valid bits for second instruction
-        dest_inst1, dest_inst2: out std_logic_vector(2 downto 0)
+        dest_inst1, dest_inst2: out std_logic_vector(2 downto 0);
+        rr1_inst1, rr1_inst2: out std_logic_vector(7 downto 0); -- RR1 for newly decoded instructions
+        rr2_inst1, rr2_inst2: out std_logic_vector(7 downto 0); -- RR2 for newly decoded instructions
+        rr3_inst1, rr3_inst2: out std_logic_vector(7 downto 0) -- RR3 for newly decoded instructions
     );
 end entity IDStage;
 
@@ -263,6 +266,9 @@ begin
             valid_second => data_rf_full_second
         );
 
+    rr1_inst1 <= data_rr_tag_inst1;
+    rr1_inst2 <= data_rr_tag_inst2;
+
     dest_write_checker_inst1: DestinationWriteChecker
         port map(
             instruction => IFID_IMem_Op(31 downto 16),
@@ -328,6 +334,9 @@ begin
             valid_second => carry_rf_full_second
         );
 
+    rr2_inst1 <= carry_rr_tag_inst1;
+    rr2_inst2 <= carry_rr_tag_inst2;
+
     carry_write_checker_inst1: CarryWriteChecker
         port map(
             instruction => IFID_IMem_Op(31 downto 16),
@@ -380,6 +389,9 @@ begin
             y_second => zero_rr_tag_inst2,
             valid_second => zero_rf_full_second
         );
+    
+    rr3_inst1 <= zero_rr_tag_inst1;
+    rr3_inst2 <= zero_rr_tag_inst2;
 
     zero_write_checker_inst1: ZeroWriteChecker
         port map(

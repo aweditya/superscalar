@@ -67,7 +67,10 @@ ARCHITECTURE arch OF datapath IS
             c_inst1, z_inst1, c_inst2, z_inst2 : OUT STD_LOGIC_VECTOR(7 DOWNTO 0); -- carry and zero values for the two instructions
             valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1 : OUT STD_LOGIC; -- valid bits for first instruction
             valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2 : OUT STD_LOGIC; -- valid bits for second instruction
-            dest_inst1, dest_inst2: out std_logic_vector(2 downto 0)
+            dest_inst1, dest_inst2: out std_logic_vector(2 downto 0);
+            rr1_inst1, rr1_inst2: out std_logic_vector(7 downto 0); -- RR1 for newly decoded instructions
+            rr2_inst1, rr2_inst2: out std_logic_vector(7 downto 0); -- RR2 for newly decoded instructions
+            rr3_inst1, rr3_inst2: out std_logic_vector(7 downto 0) -- RR3 for newly decoded instructions
         );
     END COMPONENT IDStage;
     -- 
@@ -330,7 +333,13 @@ BEGIN
         valid3_inst2 => valid3_inst2_DR,
         valid4_inst2 => valid4_inst2_DR,
         dest_inst1 => dest_inst1_DR,
-        dest_inst2 => dest_inst1_DR
+        dest_inst2 => dest_inst1_DR,
+        rr1_inst1 => rr1_inst1_DR,
+        rr1_inst2 => rr1_inst2_DR,
+        rr2_inst1 => rr2_inst1_DR, 
+        rr2_inst2 => rr2_inst2_DR,
+        rr3_inst1 => rr3_inst1_DR, 
+        rr3_inst2 => rr3_inst2_DR
     );
 
     rs1 : rs GENERIC MAP(
@@ -440,7 +449,7 @@ BEGIN
         rb_data => rb_ALU2_RSAP,
         pc_in => pc_ALU2_RSAP,
         imm_data => imm6_ALU2_RSAP,
-        
+
         c_in => c_ALU2_out_RSAP,
         z_in => z_ALU2_out_RSAP,
         c_out => c_ALU2_EW,
