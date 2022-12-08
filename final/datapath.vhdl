@@ -66,7 +66,8 @@ ARCHITECTURE arch OF datapath IS
             imm6_inst1, imm6_inst2 : OUT STD_LOGIC_VECTOR(5 DOWNTO 0); -- imm6 values for the two instructions
             c_inst1, z_inst1, c_inst2, z_inst2 : OUT STD_LOGIC_VECTOR(7 DOWNTO 0); -- carry and zero values for the two instructions
             valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1 : OUT STD_LOGIC; -- valid bits for first instruction
-            valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2 : OUT STD_LOGIC -- valid bits for second instruction
+            valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2 : OUT STD_LOGIC; -- valid bits for second instruction
+            dest_inst1, dest_inst2: out std_logic_vector(2 downto 0)
         );
     END COMPONENT IDStage;
     -- 
@@ -257,8 +258,9 @@ ARCHITECTURE arch OF datapath IS
 BEGIN
     -- port maps --
     instfetch : IFStage PORT MAP(
-        clk => clk,
         reset => reset,
+        clk => clk,
+        
         wr_IFID => wr_IFID_IFFB,
         IFID_inc_D => IFID_inc_D_IFFB,
         IFID_PC_D => IFID_PC_D_IFFB,
@@ -269,6 +271,7 @@ BEGIN
         clk => clk,
         clr => reset,
         wr_IFID => wr_IFID_IFFB,
+
         IFID_inc_D => IFID_inc_D_IFFB,
         IFID_PC_D => IFID_PC_D_IFFB,
         IFID_IMem_D => IFID_IMem_D_IFFB,
@@ -302,7 +305,6 @@ BEGIN
         rs_almost_full => CT_rs_almost_full, 
         rs_full => CT_rs_full,
 
-
         opr1_inst1 => opr1_inst1_DR,
         opr2_inst1 => opr2_inst1_DR,
         opr1_inst2 => opr1_inst2_DR,
@@ -326,7 +328,9 @@ BEGIN
         valid1_inst2 => valid1_inst2_DR,
         valid2_inst2 => valid2_inst2_DR,
         valid3_inst2 => valid3_inst2_DR,
-        valid4_inst2 => valid4_inst2_DR
+        valid4_inst2 => valid4_inst2_DR,
+        dest_inst1 => dest_inst1_DR,
+        dest_inst2 => dest_inst1_DR
     );
 
     rs1 : rs GENERIC MAP(
@@ -403,6 +407,7 @@ BEGIN
         control_in => control_ALU1_RSACG,
         carry_in => c_ALU1_out_RSAP,
         zero_in => z_ALU1_out_RSAP,
+
         control_out => control_ALU1_ACGAP
     );
 
@@ -412,6 +417,7 @@ BEGIN
         rb_data => rb_ALU1_RSAP,
         pc_in => pc_ALU1_RSAP,
         imm_data => imm6_ALU1_RSAP,
+
         c_in => c_ALU1_out_RSAP,
         z_in => z_ALU1_out_RSAP,
         c_out => c_ALU2_EW,
@@ -424,6 +430,7 @@ BEGIN
         control_in => control_ALU1_RSACG,
         carry_in => c_ALU2_out_RSAP,
         zero_in => z_ALU2_out_RSAP,
+
         control_out => control_ALU2_ACGAP
     );
 
@@ -433,6 +440,7 @@ BEGIN
         rb_data => rb_ALU2_RSAP,
         pc_in => pc_ALU2_RSAP,
         imm_data => imm6_ALU2_RSAP,
+        
         c_in => c_ALU2_out_RSAP,
         z_in => z_ALU2_out_RSAP,
         c_out => c_ALU2_EW,
@@ -467,6 +475,7 @@ BEGIN
         rr2_inst2 => rr2_inst2_DR,
         rr3_inst1 => rr3_inst1_DR,
         rr3_inst2 => rr3_inst2_DR,
+
         rr1_ALU1 => rr1_ALU1_ED,
         rr1_ALU2 => rr1_ALU2_ED,
         rr2_ALU1 => rr2_ALU1_ED,
