@@ -84,6 +84,10 @@ architecture behavioural of rs is
     signal first_free_entry, second_free_entry: std_logic_vector(7 downto 0) := (others => '0');
     signal valid_first_sig, valid_second_sig: std_logic := '0';
 
+    signal rs_ready_sig: std_logic_vector(size-1 downto 0) := (others => '1');
+    signal is_alu_instruction: std_logic_vector(size-1 downto 0) := (others => '1');
+    signal ready_for_alu_pipeline: std_logic_vector(size-1 downto 0) := (others => '0');
+
 begin
     allocate_unit: DualPriorityEncoderActiveHigh
         generic map(
@@ -98,12 +102,35 @@ begin
             valid_second => valid_second_sig
         );
 
-    convert_to_sig: process(rs_issued)
+    convert_rs_issued_to_sig: process(rs_issued)
     begin
         for i in 0 to size -1 loop
             rs_issued_sig(i) <= rs_issued(i);
         end loop;
-    end process convert_to_sig;
+    end process convert_rs_issued_to_sig;
+
+    convert_rs_ready_to_sig: process(rs_ready)
+    begin
+        for i in 0 to size -1 loop
+            rs_ready_sig(i) <= rs_ready(i);
+        end loop;
+    end process convert_rs_ready_to_sig;
+
+    check_if_alu_instruction: process(rs_control)
+    begin
+        for i in 0 to size -1 loop
+            if (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010" or rs_control(i)(5 downto 2) = "0000") then
+                is_alu_instruction(i) <= '1';
+            else
+                is_alu_instruction(i) <= '0';
+            end if;
+        end loop;
+    end process check_if_alu_instruction;
+
+    is_ready_for_alu_pipeline: process(is_alu_instruction, rs_ready_sig, rs_issued_sig)
+    begin
+        ready_for_alu_pipeline <= is_alu_instruction and rs_ready_sig and (not rs_issued_sig);
+    end process is_ready_for_alu_pipeline;
 
     rs_operation: process(clr, clk, wr_inst1, wr_inst2, rs_ready, rs_issued, rs_control, control_inst1, control_inst2, 
     pc_inst1, pc_inst2, opr1_inst1, opr1_inst2, opr2_inst1, opr2_inst2, valid1_inst1, valid1_inst2, valid2_inst1, 
