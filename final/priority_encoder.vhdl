@@ -19,18 +19,21 @@ architecture behavioural of PriorityEncoder is
     
 begin
     output_process : process(a)
+        variable priority_encoding: std_logic_vector(output_width - 1 downto 0);
         variable valid : std_logic;
     begin
+	     priority_encoding := (others => '0');
         valid := '1';
 
         priority_loop: for i in 0 to input_width-1 loop
             if a(i) = '0' then
-                first_zero <= std_logic_vector(to_unsigned(i, output_width));
+                priority_encoding := std_logic_vector(to_unsigned(i, output_width));
             end if;
 
             valid := valid and a(i);
         end loop priority_loop;
 
+        first_zero <= priority_encoding;
         valid := not valid;
         all_ones <= valid;
 
