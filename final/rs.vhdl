@@ -173,8 +173,8 @@ begin
                         ra_ALU2 <= rs_opr1(i);
                         rb_ALU2 <= rs_opr2(i);
                         imm6_ALU2 <= rs_imm_6(i);
-                        c_ALU1_out <= rs_c(i)(0);
-                        z_ALU1_out <= rs_z(i)(0);
+                        c_ALU2_out <= rs_c(i)(0);
+                        z_ALU2_out <= rs_z(i)(0);
                         control_ALU2 <= rs_control(i);
                         rs_issued(i) <= '1';
                         count <= count - 1;
