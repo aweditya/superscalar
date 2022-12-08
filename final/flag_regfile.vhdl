@@ -94,22 +94,22 @@ begin
         begin 
             if (clr = '1') then
                 data_out_sig_1 <= (others => '0');
-                data_tag_out_1 <= '0';
+                data_tag_out_1 <= '1';
 
             else
                 if (arf_valid = '1') then
                     data_out_sig_1 <= std_logic_vector(resize(unsigned(arf_data), 8));
-                    data_tag_out_1 <= '0';
+                    data_tag_out_1 <= '1';
 
                 else
                     if (rrf_valid(to_integer(unsigned(arf_tag)))) = '1' then
                         data_out_sig_1 <= std_logic_vector(resize(unsigned(rrf_data(to_integer(unsigned(arf_tag)))), 8));
-                        data_tag_out_1 <= '0';
+                        data_tag_out_1 <= '1';
 
                     else
                         --sign extension--
                         data_out_sig_1 <= arf_tag;
-                        data_tag_out_1 <= '1';
+                        data_tag_out_1 <= '0';
 
                     end if;
                 end if;
@@ -120,17 +120,17 @@ begin
         begin 
             if (clr = '1') then
                 data_out_sig_2 <= (others => '0');
-                data_tag_out_2 <= '0';
+                data_tag_out_2 <= '1';
                 
             else
                 if (arf_valid = '1') then
                     data_out_sig_2 <= std_logic_vector(resize(unsigned(arf_data), 8));
-                    data_tag_out_2 <= '0';
+                    data_tag_out_2 <= '1';
 
                 else
                     if (rrf_valid(to_integer(unsigned(arf_tag)))) = '1' then
                         data_out_sig_2 <= std_logic_vector(resize(unsigned(rrf_data(to_integer(unsigned(arf_tag)))), 8));
-                        data_tag_out_2 <= '0';
+                        data_tag_out_2 <= '1';
 
                     else
                         --sign extension--
@@ -140,7 +140,7 @@ begin
                             data_out_sig_2 <= arf_tag;
                         end if;
                         
-                        data_tag_out_2 <= '1';
+                        data_tag_out_2 <= '0';
 
                     end if;
                 end if;

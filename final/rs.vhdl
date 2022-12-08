@@ -277,7 +277,7 @@ begin
                 end loop;
 
                 -- Finding a ready entry and forwarding it to ALU pipeline-1
-                if (rd_ALU1 = '1' and (not issue_valid_first_sig)) then
+                if (rd_ALU1 = '1' and issue_valid_first_sig = '0') then
                     pc_ALU1 <= rs_pc(to_integer(unsigned(first_ready_inst)));
                     ra_ALU1 <= rs_opr1(to_integer(unsigned(first_ready_inst)));
                     rb_ALU1 <= rs_opr2(to_integer(unsigned(first_ready_inst)));
@@ -290,7 +290,7 @@ begin
                 end if;
 
                 -- Finding a ready entry and forwarding it to ALU pipeline-2
-                if (rd_ALU2 = '1' and (not issue_valid_second_sig)) then
+                if (rd_ALU2 = '1' and issue_valid_second_sig = '0') then
                     pc_ALU2 <= rs_pc(to_integer(unsigned(second_ready_inst)));
                     ra_ALU2 <= rs_opr1(to_integer(unsigned(second_ready_inst)));
                     rb_ALU2 <= rs_opr2(to_integer(unsigned(second_ready_inst)));
@@ -302,13 +302,13 @@ begin
                     finished_ALU2_s <= '1';
                 end if;
 
-                if (rd_ALU1 = '1' and rd_ALU2 = '1') then
-                    count <= count - 2;
-                elsif (rd_ALU1 = '1') then
-                    count <= count - 1;
-                elsif (rd_ALU2 = '1') then
-                    count <= count - 1;
-                end if;
+                --if (rd_ALU1 = '1' and rd_ALU2 = '1') then
+                --    count <= count - 2;
+                --elsif (rd_ALU1 = '1') then
+                --    count <= count - 1;
+                --elsif (rd_ALU2 = '1') then
+                --    count <= count - 1;
+                --end if;
             end if;
         end if;
     end process rs_operation;

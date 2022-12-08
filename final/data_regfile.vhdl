@@ -106,22 +106,22 @@ begin
         begin 
             if (clr = '1') then
                 data_out_sig_1 <= (others => '0');
-                data_tag_out_1 <= '0';
+                data_tag_out_1 <= '1';
 
             else
                 if (arf_valid(to_integer(unsigned(source_select_1))) = '1') then
                     data_out_sig_1 <= arf_data(to_integer(unsigned(source_select_1)));
-                    data_tag_out_1 <= '0';
+                    data_tag_out_1 <= '1';
 
                 else
                     if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_1))))))) = '1' then
                         data_out_sig_1 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_1))))));
-                        data_tag_out_1 <= '0';
+                        data_tag_out_1 <= '1';
 
                     else
                         --sign extension--
                         data_out_sig_1 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_1)))), 16));
-                        data_tag_out_1 <= '1';
+                        data_tag_out_1 <= '0';
 
                     end if;
                 end if;
@@ -132,22 +132,22 @@ begin
         begin 
             if (clr = '1') then
                 data_out_sig_2 <= (others => '0');
-                data_tag_out_2 <= '0';
+                data_tag_out_2 <= '1';
 
             else
                 if (arf_valid(to_integer(unsigned(source_select_2))) = '1') then
                     data_out_sig_2 <= arf_data(to_integer(unsigned(source_select_2)));
-                    data_tag_out_2 <= '0';
+                    data_tag_out_2 <= '1';
 
                 else
                     if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_2))))))) = '1' then
                         data_out_sig_2 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_2))))));
-                        data_tag_out_2 <= '0';
+                        data_tag_out_2 <= '1';
 
                     else
                         --sign extension--
                         data_out_sig_2 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_2)))), 16));
-                        data_tag_out_2 <= '1';
+                        data_tag_out_2 <= '0';
 
                     end if;
                 end if;
@@ -160,17 +160,17 @@ begin
         begin
             if (clr = '1') then
                 data_out_sig_3 <= (others => '0');
-                data_tag_out_3 <= '0';
+                data_tag_out_3 <= '1';
 
             else
                 if (arf_valid(to_integer(unsigned(source_select_3))) = '1') then
                     data_out_sig_3 <= arf_data(to_integer(unsigned(source_select_3)));
-                    data_tag_out_3 <= '0';
+                    data_tag_out_3 <= '1';
 
                 else
                     if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_3))))))) = '1' then
                         data_out_sig_3 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_3))))));
-                        data_tag_out_3 <= '0';
+                        data_tag_out_3 <= '1';
 
                     else
                         --sign extension--
@@ -180,7 +180,7 @@ begin
                             data_out_sig_3 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_3)))), 16));
                         end if;
                         
-                        data_tag_out_3 <= '1';
+                        data_tag_out_3 <= '0';
 
                     end if;
                 end if;
@@ -191,17 +191,17 @@ begin
         begin
             if (clr = '1') then
                 data_out_sig_4 <= (others => '0');
-                data_tag_out_4 <= '0';
+                data_tag_out_4 <= '1';
 
             else
                 if (arf_valid(to_integer(unsigned(source_select_4))) = '1') then
                     data_out_sig_4 <= arf_data(to_integer(unsigned(source_select_4)));
-                    data_tag_out_4 <= '0';
+                    data_tag_out_4 <= '1';
 
                 else
                     if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_4))))))) = '1' then
                         data_out_sig_4 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_4))))));
-                        data_tag_out_4 <= '0';
+                        data_tag_out_4 <= '1';
 
                     else
                         --sign extension--
@@ -211,7 +211,7 @@ begin
                             data_out_sig_4 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_4)))), 16));
                         end if;
                         
-                        data_tag_out_4 <= '1';
+                        data_tag_out_4 <= '0';
 
                     end if;
                 end if;
