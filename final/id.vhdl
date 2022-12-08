@@ -38,7 +38,11 @@ entity IDStage is
         imm6_inst1, imm6_inst2: out std_logic_vector(5 downto 0); -- imm6 values for the two instructions
         c_inst1, z_inst1, c_inst2, z_inst2: out std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
         valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: out std_logic; -- valid bits for first instruction
-        valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic -- valid bits for second instruction
+        valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic; -- valid bits for second instruction
+        dest_inst1, dest_inst2: out std_logic_vector(2 downto 0);
+        rr1_inst1, rr1_inst2: out std_logic_vector(7 downto 0); -- RR1 for newly decoded instructions
+        rr2_inst1, rr2_inst2: out std_logic_vector(7 downto 0); -- RR2 for newly decoded instructions
+        rr3_inst1, rr3_inst2: out std_logic_vector(7 downto 0) -- RR3 for newly decoded instructions
     );
 end entity IDStage;
 
@@ -102,10 +106,10 @@ architecture behavioural of IDStage is
     
     component OperandExtractor is
         port(
-            instruction: std_logic_vector(15 downto 0);
+            instruction: in std_logic_vector(15 downto 0);
 
-            operand1, operand2: std_logic_vector(2 downto 0);
-            destination: std_logic_vector(2 downto 0)
+            operand1, operand2: out std_logic_vector(2 downto 0);
+            destination: out std_logic_vector(2 downto 0)
         );
     end component;
 
@@ -165,14 +169,20 @@ begin
             -- One space left in RS so turn off write for instruction 2, check write for instruction 1
             if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
     
             if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
     
             if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
 
             write_inst2 := '0';
@@ -180,26 +190,38 @@ begin
             -- More than two entries in the RS. Check write for each instruction
             if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
-
+    
             if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
-
+    
             if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
 
             if (data_reg_wr2 = '1' and data_rf_full_second = '0') then
                 write_inst2 := '0';
+				else
+				    write_inst2 := '1';
             end if;
     
             if (carry_reg_wr2 = '1' and carry_rf_full_second = '0') then
                 write_inst2 := '0';
+				else
+				    write_inst2 := '1';
             end if;
     
             if (zero_reg_wr2 = '1' and zero_rf_full_second = '0') then
                 write_inst2 := '0';
+				else
+				    write_inst2 := '1';
             end if;
         end if;
         
@@ -235,6 +257,9 @@ begin
             destination => dest_addr_inst1
         );
 
+    dest_inst1 <= dest_addr_inst1;
+
+
     inst2_operands: OperandExtractor
         port map(
             instruction => IFID_IMem_Op(15 downto 0),
@@ -243,6 +268,8 @@ begin
             operand2 => opr_addr2_inst2,
             destination => dest_addr_inst2
         );
+
+    dest_inst2 <= dest_addr_inst2;
 
     data_priority_encoder: DualPriorityEncoder
         generic map (
@@ -256,6 +283,9 @@ begin
             y_second => data_rr_tag_inst2,
             valid_second => data_rf_full_second
         );
+
+    rr1_inst1 <= data_rr_tag_inst1;
+    rr1_inst2 <= data_rr_tag_inst2;
 
     dest_write_checker_inst1: DestinationWriteChecker
         port map(
@@ -322,6 +352,9 @@ begin
             valid_second => carry_rf_full_second
         );
 
+    rr2_inst1 <= carry_rr_tag_inst1;
+    rr2_inst2 <= carry_rr_tag_inst2;
+
     carry_write_checker_inst1: CarryWriteChecker
         port map(
             instruction => IFID_IMem_Op(31 downto 16),
@@ -374,6 +407,9 @@ begin
             y_second => zero_rr_tag_inst2,
             valid_second => zero_rf_full_second
         );
+    
+    rr3_inst1 <= zero_rr_tag_inst1;
+    rr3_inst2 <= zero_rr_tag_inst2;
 
     zero_write_checker_inst1: ZeroWriteChecker
         port map(

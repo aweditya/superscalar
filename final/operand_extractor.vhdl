@@ -4,10 +4,10 @@ use ieee.numeric_std.all;
 
 entity OperandExtractor is
     port(
-        instruction: std_logic_vector(15 downto 0);
+        instruction: in std_logic_vector(15 downto 0);
 
-        operand1, operand2: std_logic_vector(2 downto 0);
-        destination: std_logic_vector(2 downto 0)
+        operand1, operand2: out std_logic_vector(2 downto 0);
+        destination: out std_logic_vector(2 downto 0)
     );
 end entity OperandExtractor;
 
@@ -38,4 +38,8 @@ begin
             
         end if;
     end process get_operands_process;
+	 
+	 operand1 <= operand1_sig;
+	 operand2 <= operand2_sig;
+	 destination <= destination_sig;
 end architecture behavioural;
