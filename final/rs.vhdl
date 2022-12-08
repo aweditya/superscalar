@@ -87,6 +87,8 @@ architecture behavioural of rs is
     signal rs_ready_sig: std_logic_vector(size-1 downto 0) := (others => '1');
     signal is_alu_instruction: std_logic_vector(size-1 downto 0) := (others => '1');
     signal ready_for_alu_pipeline: std_logic_vector(size-1 downto 0) := (others => '0');
+    signal first_ready_inst, second_ready_inst: std_logic_vector(7 downto 0) := (others => '0');
+    signal issue_valid_first_sig, issue_valid_second_sig: std_logic := '0';
 
 begin
     allocate_unit: DualPriorityEncoderActiveHigh
@@ -132,12 +134,25 @@ begin
         ready_for_alu_pipeline <= is_alu_instruction and rs_ready_sig and (not rs_issued_sig);
     end process is_ready_for_alu_pipeline;
 
+    issuing_unit: DualPriorityEncoderActiveHigh
+        generic map(
+            input_width => 2 ** 8,
+            output_width => 8
+        )
+        port map(
+            a => ready_for_alu_pipeline,
+            y_first => first_ready_inst,
+            valid_first => issue_valid_first_sig,
+            y_second => second_ready_inst,
+            valid_second => issue_valid_second_sig
+        );
+
     rs_operation: process(clr, clk, wr_inst1, wr_inst2, rs_ready, rs_issued, rs_control, control_inst1, control_inst2, 
     pc_inst1, pc_inst2, opr1_inst1, opr1_inst2, opr2_inst1, opr2_inst2, valid1_inst1, valid1_inst2, valid2_inst1, 
     valid2_inst2, imm6_inst1, imm6_inst2, c_inst1, c_inst2, valid3_inst1, valid3_inst2, z_inst1, z_inst2, valid4_inst1, 
     valid4_inst2, rs_v1, rs_opr1, rs_v2, rs_opr2, rr1_ALU1, rr1_ALU2, data_ALU1, data_ALU2, rs_v3, rs_c, rr2_ALU1, 
     rr2_ALU2, c_ALU1_in, c_ALU2_in, rs_v4, rs_z, rr3_ALU1, rr3_ALU2, z_ALU1_in, z_ALU2_in, finished_ALU1, finished_ALU2,
-    rd_ALU1, rd_ALU2, rs_pc, rs_imm_6, valid_first_sig, valid_second_sig)
+    rd_ALU1, rd_ALU2, rs_pc, rs_imm_6, first_free_entry, second_free_entry, first_ready_inst, second_ready_inst)
     begin
         if (clr = '1') then
             rs_control <= (others => (others => '0'));
@@ -281,27 +296,40 @@ begin
                         exit;
                     end if;
                 end loop;
-                
-                -- Finding a ready entry and forwarding it to ALU pipeline-2
-                for i in 0 to size-1 loop
-                    if (rd_ALU2 = '1' and rs_ready(i) = '1' and rs_issued(i) = '0') then
-                        if (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010" or rs_control(i)(5 downto 2) = "0000") then
-                            -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ
-                            pc_ALU2 <= rs_pc(i);
-                            ra_ALU2 <= rs_opr1(i);
-                            rb_ALU2 <= rs_opr2(i);
-                            imm6_ALU2 <= rs_imm_6(i);
-                            c_ALU2_out <= rs_c(i)(0);
-                            z_ALU2_out <= rs_z(i)(0);
-                            control_ALU2 <= rs_control(i);
-                            finished_ALU2_s <= '1';
 
-                            rs_issued(i) <= '1';
-                            count <= count - 1;
-                        end if;
-                        exit;
-                    end if;
-                end loop;
+                -- Finding a ready entry and forwarding it to ALU pipeline-1
+                if (rd_ALU1 = '1') then
+                    pc_ALU1 <= rs_pc(to_integer(unsigned(first_ready_inst)));
+                    ra_ALU1 <= rs_opr1(to_integer(unsigned(first_ready_inst)));
+                    rb_ALU1 <= rs_opr2(to_integer(unsigned(first_ready_inst)));
+                    imm6_ALU1 <= rs_imm_6(to_integer(unsigned(first_ready_inst)));
+                    c_ALU1_out <= rs_c(to_integer(unsigned(first_ready_inst)))(0);
+                    z_ALU1_out <= rs_z(to_integer(unsigned(first_ready_inst)))(0); 
+                    control_ALU1 <= rs_control(to_integer(unsigned(first_ready_inst)));
+                    rs_issued(to_integer(unsigned(first_ready_inst))) <= '1';
+                    finished_ALU1_s <= '1';
+                end if;
+
+                -- Finding a ready entry and forwarding it to ALU pipeline-2
+                if (rd_ALU2 = '1') then
+                    pc_ALU2 <= rs_pc(to_integer(unsigned(second_ready_inst)));
+                    ra_ALU2 <= rs_opr1(to_integer(unsigned(second_ready_inst)));
+                    rb_ALU2 <= rs_opr2(to_integer(unsigned(second_ready_inst)));
+                    imm6_ALU2 <= rs_imm_6(to_integer(unsigned(second_ready_inst)));
+                    c_ALU2_out <= rs_c(to_integer(unsigned(second_ready_inst)))(0);
+                    z_ALU2_out <= rs_z(to_integer(unsigned(second_ready_inst)))(0);
+                    control_ALU2 <= rs_control(to_integer(unsigned(second_ready_inst)));
+                    rs_issued(to_integer(unsigned(second_ready_inst))) <= '1';
+                    finished_ALU2_s <= '1';
+                end if;
+
+                if (rd_ALU1 = '1' and rd_ALU2 = '1') then
+                    count <= count - 2;
+                elsif (rd_ALU1 = '1') then
+                    count <= count - 1;
+                elsif (rd_ALU2 = '1') then
+                    count <= count - 1;
+                end if;
             end if;
         end if;
     end process rs_operation;
