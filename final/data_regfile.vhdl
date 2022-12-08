@@ -55,14 +55,11 @@ begin
         if (clr = '1') then
             for i in 0 to (integer'(2)**3)-1 loop
                 arf_data(i) <= (others => '0');
-                arf_valid(i) <= '0';
+                arf_valid(i) <= '1';
                 arf_tag(i) <= (others => '0');
-                rrf_data(i) <= (others => '0');
-                rrf_valid(i) <= '1';
-                rrf_busy(i) <= '0';
             end loop;
 
-            for i in (integer'(2)**3) to (integer'(2)**8)-1 loop
+            for i in 0 to (integer'(2)**8)-1 loop
                 rrf_data(i) <= (others => '0');
                 rrf_valid(i) <= '1';
                 rrf_busy(i) <= '0';

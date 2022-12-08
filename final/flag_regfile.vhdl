@@ -45,7 +45,7 @@ begin
     begin
         if (clr = '1') then
             arf_data <= (others => '0');
-            arf_valid <= '0';
+            arf_valid <= '1';
             arf_tag <= (others => '0');
 
             for i in 0 to (integer'(2)**8)-1 loop
