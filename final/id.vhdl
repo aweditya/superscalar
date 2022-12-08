@@ -106,10 +106,10 @@ architecture behavioural of IDStage is
     
     component OperandExtractor is
         port(
-            instruction: std_logic_vector(15 downto 0);
+            instruction: in std_logic_vector(15 downto 0);
 
-            operand1, operand2: std_logic_vector(2 downto 0);
-            destination: std_logic_vector(2 downto 0)
+            operand1, operand2: out std_logic_vector(2 downto 0);
+            destination: out std_logic_vector(2 downto 0)
         );
     end component;
 
@@ -169,14 +169,20 @@ begin
             -- One space left in RS so turn off write for instruction 2, check write for instruction 1
             if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
     
             if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
     
             if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
 
             write_inst2 := '0';
@@ -184,26 +190,38 @@ begin
             -- More than two entries in the RS. Check write for each instruction
             if (data_reg_wr1 = '1' and data_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
-
+    
             if (carry_reg_wr1 = '1' and carry_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
-
+    
             if (zero_reg_wr1 = '1' and zero_rf_full_first = '0') then
                 write_inst1 := '0';
+				else
+				    write_inst1 := '1';
             end if;
 
             if (data_reg_wr2 = '1' and data_rf_full_second = '0') then
                 write_inst2 := '0';
+				else
+				    write_inst2 := '1';
             end if;
     
             if (carry_reg_wr2 = '1' and carry_rf_full_second = '0') then
                 write_inst2 := '0';
+				else
+				    write_inst2 := '1';
             end if;
     
             if (zero_reg_wr2 = '1' and zero_rf_full_second = '0') then
                 write_inst2 := '0';
+				else
+				    write_inst2 := '1';
             end if;
         end if;
         

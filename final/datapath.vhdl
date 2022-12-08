@@ -167,29 +167,29 @@ ARCHITECTURE arch OF datapath IS
     END COMPONENT rob;
     -- 
     -- Control Unit
-    COMPONENT Control IS
-        PORT (
-            --INPUTS------------------------------------
-            clk : IN STD_LOGIC;
-            rst : IN STD_LOGIC;
-            wr_fetch : IN STD_LOGIC;
-            rs_full_input : IN STD_LOGIC; --connect to full_out,
-            rs_almost_full_input : IN STD_LOGIC; --connect to almost_full_out,
-            wr_wb_mem : IN STD_LOGIC;
-            wr_wb_regfile : IN STD_LOGIC;
-            end_of_program : IN STD_LOGIC; -- This will be used to stop the pipeline. Equivalent to a permanent stall, differs in functioning.
-            --OUTPUTS----------------------------------
-            adv_fetch : OUT STD_LOGIC;
-            adv_rs : OUT STD_LOGIC;
-            adv_wb : OUT STD_LOGIC;
-            rs_full : OUT STD_LOGIC; --connect to rs_almost_full, rs_full of id stage
-            rs_almost_full : OUT STD_LOGIC;
-            adv_rob : OUT STD_LOGIC;
-            flush_out : OUT STD_LOGIC; -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
-            stall_out : OUT STD_LOGIC -- For completeness sake, will remove if not required.
-
-        );
-    END COMPONENT;
+--    COMPONENT Control IS
+--        PORT (
+--            --INPUTS------------------------------------
+--            clk : IN STD_LOGIC;
+--            rst : IN STD_LOGIC;
+--            wr_fetch : IN STD_LOGIC;
+--            rs_full_input : IN STD_LOGIC; --connect to full_out,
+--            rs_almost_full_input : IN STD_LOGIC; --connect to almost_full_out,
+--            wr_wb_mem : IN STD_LOGIC;
+--            wr_wb_regfile : IN STD_LOGIC;
+--            end_of_program : IN STD_LOGIC; -- This will be used to stop the pipeline. Equivalent to a permanent stall, differs in functioning.
+--            --OUTPUTS----------------------------------
+--            adv_fetch : OUT STD_LOGIC;
+--            adv_rs : OUT STD_LOGIC;
+--            adv_wb : OUT STD_LOGIC;
+--            rs_full : OUT STD_LOGIC; --connect to rs_almost_full, rs_full of id stage
+--            rs_almost_full : OUT STD_LOGIC;
+--            adv_rob : OUT STD_LOGIC;
+--            flush_out : OUT STD_LOGIC; -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
+--            stall_out : OUT STD_LOGIC -- For completeness sake, will remove if not required.
+--
+--        );
+--    END COMPONENT;
     -- 
 
     --signals for if and fetch buffer --
@@ -216,7 +216,7 @@ ARCHITECTURE arch OF datapath IS
 
     -- signals from ID to ROB
     SIGNAL rr1_inst1_DR, rr1_inst2_DR, rr2_inst1_DR, rr2_inst2_DR, rr3_inst1_DR, rr3_inst2_DR : STD_LOGIC_VECTOR(7 DOWNTO 0);
-    SIGNAL dest_inst1_DR, dest_inst2_DR : STD_LOGIC_VECTOR(2 DOWNTO 0);
+    SIGNAL dest_inst1_DR, dest_inst2_DR : STD_LOGIC_VECTOR(2 DOWNTO 0) := (others => '0');
 
     -- signals for rs - alupipe connections --
     SIGNAL pc_ALU1_RSAP, pc_ALU2_RSAP : STD_LOGIC_VECTOR(15 DOWNTO 0); -- pc values forwarded to each execution pipeline
@@ -233,7 +233,7 @@ ARCHITECTURE arch OF datapath IS
     -- signal from EXEC to ROB --
     SIGNAL pc_ALU1_EW, pc_ALU2_EW : STD_LOGIC_VECTOR(15 DOWNTO 0); -- PC values for identifying the newly executed instructions
     SIGNAL value_ALU1_EW, value_ALU2_EW : STD_LOGIC_VECTOR(15 DOWNTO 0); -- final output values obtained from the execution pipelines
-    SIGNAL c_ALU1_EW, z_ALU1_EW, c_ALU2_EW, z_ALU2_EW : STD_LOGIC; -- c and z values obtained from the execution pipelines
+    SIGNAL c_ALU1_EW, z_ALU1_EW, c_ALU2_EW, z_ALU2_EW : STD_LOGIC := '0'; -- c and z values obtained from the execution pipelines
     SIGNAL finished_ALU1_RE, finished_ALU2_RE : STD_LOGIC;
 
     -- signals for ROB - ID connections
@@ -244,18 +244,18 @@ ARCHITECTURE arch OF datapath IS
 
     ---CONTROLLER SIGNALS---
 
-    --CT as:
-    --       suffix -> input to controller
-    --       prefix -> output from controller
+--    --CT as:
+--    --       suffix -> input to controller
+--    --       prefix -> output from controller
     SIGNAL almost_full_out_CT : STD_LOGIC;
     SIGNAL full_out_CT : STD_LOGIC;
     SIGNAL empty_out_CT : STD_LOGIC;
-    SIGNAL CT_rs_full : STD_LOGIC;
-    SIGNAL CT_rs_almost_full : STD_LOGIC;
-    SIGNAL CT_stall_out : STD_LOGIC;
-    SIGNAL CT_flush_out : STD_LOGIC;
-    SIGNAL from_future_default_set : STD_LOGIC := '1';
-    SIGNAL from_future_default_unset : STD_LOGIC := '0';
+--    SIGNAL CT_rs_full : STD_LOGIC;
+--    SIGNAL CT_rs_almost_full : STD_LOGIC;
+--    SIGNAL CT_stall_out : STD_LOGIC;
+--    SIGNAL CT_flush_out : STD_LOGIC;
+--    SIGNAL from_future_default_set : STD_LOGIC := '1';
+--    SIGNAL from_future_default_unset : STD_LOGIC := '0';
     ------------------------
 
 BEGIN
@@ -305,8 +305,8 @@ BEGIN
         zero_result_alu_2(0) => z_ALU2_EW,
         inst_complete_exec => completed_WD,
         inst_complete_exec_dest => dest_WD,
-        rs_almost_full => CT_rs_almost_full, 
-        rs_full => CT_rs_full,
+        rs_almost_full => almost_full_out_CT, 
+        rs_full => full_out_CT,
 
         opr1_inst1 => opr1_inst1_DR,
         opr2_inst1 => opr2_inst1_DR,
@@ -333,7 +333,7 @@ BEGIN
         valid3_inst2 => valid3_inst2_DR,
         valid4_inst2 => valid4_inst2_DR,
         dest_inst1 => dest_inst1_DR,
-        dest_inst2 => dest_inst1_DR,
+        dest_inst2 => dest_inst2_DR,
         rr1_inst1 => rr1_inst1_DR,
         rr1_inst2 => rr1_inst2_DR,
         rr2_inst1 => rr2_inst1_DR, 
@@ -407,7 +407,7 @@ BEGIN
         full_out => full_out_CT,
         empty_out => empty_out_CT,
         finished_ALU1_out => finished_ALU1_RE,
-        finished_ALU2_out => finished_ALU1_RE,
+        finished_ALU2_out => finished_ALU2_RE,
         control_ALU1 => control_ALU1_RSACG,
         control_ALU2 => control_ALU2_RSACG
     );
@@ -429,14 +429,14 @@ BEGIN
 
         c_in => c_ALU1_out_RSAP,
         z_in => z_ALU1_out_RSAP,
-        c_out => c_ALU2_EW,
-        z_out => z_ALU2_EW,
+        c_out => c_ALU1_EW,
+        z_out => z_ALU1_EW,
         pc_out => pc_ALU1_EW,
         result => value_ALU1_EW
     );
 
     alucongen2 : ALUPipeControlGenerator PORT MAP(
-        control_in => control_ALU1_RSACG,
+        control_in => control_ALU2_RSACG,
         carry_in => c_ALU2_out_RSAP,
         zero_in => z_ALU2_out_RSAP,
 
@@ -495,26 +495,26 @@ BEGIN
         completed => completed_WD
     );
 
-    Controller : Control PORT MAP(
-
-        --INPUTS------------------------------------
-        clk => clk,
-        rst => reset,
-        wr_fetch => '1',
-        rs_full_input => full_out_CT,
-        rs_almost_full_input => almost_full_out_CT, --connect to almost_full_out of rs
-        wr_wb_mem => from_future_default_set,
-        wr_wb_regfile => from_future_default_set,
-        end_of_program => from_future_default_unset, --connect to end_of_program of fetch stage       
-        -- empty_out_CT unused
-        --OUTPUTS----------------------------------
-        -- adv_fetch =>
-        -- adv_rs =>
-        -- adv_wb =>
-        rs_full => CT_rs_full, --connect to rs_almost_full, rs_full of id stage
-        rs_almost_full => CT_rs_almost_full,
-        flush_out => CT_flush_out, -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
-        stall_out => CT_stall_out,
-        adv_rob => open
-    );
+--    Controller : Control PORT MAP(
+--
+--        --INPUTS------------------------------------
+--        clk => clk,
+--        rst => reset,
+--        wr_fetch => '1',
+--        rs_full_input => full_out_CT,
+--        rs_almost_full_input => almost_full_out_CT, --connect to almost_full_out of rs
+--        wr_wb_mem => from_future_default_set,
+--        wr_wb_regfile => from_future_default_set,
+--        end_of_program => from_future_default_unset, --connect to end_of_program of fetch stage       
+--        -- empty_out_CT unused
+--        --OUTPUTS----------------------------------
+--        -- adv_fetch =>
+--        -- adv_rs =>
+--        -- adv_wb =>
+--        rs_full => CT_rs_full, --connect to rs_almost_full, rs_full of id stage
+--        rs_almost_full => CT_rs_almost_full,
+--        flush_out => CT_flush_out, -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
+--        stall_out => CT_stall_out,
+--        adv_rob => open
+--    );
 END ARCHITECTURE;
