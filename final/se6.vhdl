@@ -10,12 +10,14 @@ end bitextender6;
 
 architecture behavior of bitextender6 is
 begin
-	alu : process(A)
+	sign_extension: process(A)
 	begin
-	if A(5) ='0' then
-		Op <= "0000000000"&A;
-	elsif A(5) ='1' then 
-		Op <= "1111111111"&A;
-	end if;
-	end process ; -- alu	
+		if A(5) ='0' then
+			Op <= "0000000000"&A;
+		elsif A(5) ='1' then 
+			Op <= "1111111111"&A;
+		else 
+			Op <= (others => '0');
+		end if;
+	end process sign_extension;	
 end behavior;

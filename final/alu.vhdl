@@ -52,6 +52,7 @@ begin
         end if;
     elsif S="11" then
         temp := '0'&(A xor B);
+        Op<=temp(15 downto 0);
         if temp="00000000000000000" then
         carry <= '0';
                 zero <= '1';
@@ -59,7 +60,10 @@ begin
         zero <= '0';
         end if;
     else
-      null;
+        temp := "00000000000000000";
+        Op<=temp(15 downto 0);
+        carry <= '0';
+        zero <= '0';
     end if;
 end process;
 end a1;
