@@ -67,10 +67,13 @@ architecture behavioural of rs is
     signal finished_ALU1_s, finished_ALU2_s: std_logic;
 
 begin
-    -- responsible for clearing entries when clr is set
-    p0: process(clr, rs_v1, rs_v2, rs_v3, rs_v4)
-        begin
-        -- clear data and indices when reset is set
+    rs_operation: process(clr, clk, wr_inst1, wr_inst2, rs_ready, rs_issued, rs_control, control_inst1, control_inst2, 
+    pc_inst1, pc_inst2, opr1_inst1, opr1_inst2, opr2_inst1, opr2_inst2, valid1_inst1, valid1_inst2, valid2_inst1, 
+    valid2_inst2, imm6_inst1, imm6_inst2, c_inst1, c_inst2, valid3_inst1, valid3_inst2, z_inst1, z_inst2, valid4_inst1, 
+    valid4_inst2, rs_v1, rs_opr1, rs_v2, rs_opr2, rr1_ALU1, rr1_ALU2, data_ALU1, data_ALU2, rs_v3, rs_c, rr2_ALU1, 
+    rr2_ALU2, c_ALU1_in, c_ALU2_in, rs_v4, rs_z, rr3_ALU1, rr3_ALU2, z_ALU1_in, z_ALU2_in, finished_ALU1, finished_ALU2,
+    rd_ALU1, rd_ALU2, rs_pc, rs_imm_6)
+    begin
         if (clr = '1') then
             rs_control <= (others => (others => '0'));
             rs_pc <= (others => (others => '0'));
@@ -82,216 +85,199 @@ begin
             rs_v3 <= (others => '0');
             rs_z <= (others => (others => '0'));
             rs_v4 <= (others => '0');
-            rs_ready <= (others => '0');
             rs_issued <= (others => '0');
             count <= 0;
-        end if;
-    end process p0; 
 
-    -- responsible for adding newly decoded instructions to the RS
-    p1: process(clk, wr_inst1, wr_inst2, rs_issued, control_inst1, control_inst2, pc_inst1, pc_inst2, opr1_inst1, opr1_inst2, opr2_inst1, opr2_inst2,
-    valid1_inst1, valid1_inst2, valid2_inst1, valid2_inst2, imm6_inst1, imm6_inst2, c_inst1, c_inst2, valid3_inst1, valid3_inst2, z_inst1, z_inst2,
-    valid4_inst1, valid4_inst2)
-        begin
-        if rising_edge(clk) then
-            -- finds an empty entry and writes first instruction to it at the clock edge
-            if (wr_inst1 = '1') then
+            pc_ALU1 <= (others => '0');
+            ra_ALU1 <= (others => '0');
+            rb_ALU1 <= (others => '0');
+            imm6_ALU1 <= (others => '0');
+            c_ALU1_out <= '0';
+            z_ALU1_out <= '0'; 
+            control_ALU1 <= (others => '0');
+            finished_ALU1_s <= '0';
+
+            pc_ALU2 <= (others => '0');
+            ra_ALU2 <= (others => '0');
+            rb_ALU2 <= (others => '0');
+            imm6_ALU2 <= (others => '0');
+            c_ALU2_out <= '0';
+            z_ALU2_out <= '0'; 
+            control_ALU2 <= (others => '0');
+            finished_ALU2_s <= '0';
+
+        else
+            if (rising_edge(clk)) then
+                -- Find an empty entry and write the first instruction to it at the clock edge
+                if (wr_inst1 = '1') then
+                    for i in 0 to size - 1 loop
+                        if (rs_issued(i) = '1') then
+                            rs_control(i) <= control_inst1;
+                            rs_pc(i) <= pc_inst1;
+                            rs_opr1(i) <= opr1_inst1;
+                            rs_v1(i) <= valid1_inst1;
+                            rs_opr2(i) <= opr2_inst1;
+                            rs_v2(i) <= valid2_inst1;
+                            rs_imm_6(i) <= imm6_inst1;
+                            rs_c(i) <= c_inst1;
+                            rs_v3(i) <= valid3_inst1;
+                            rs_z(i) <= z_inst1;
+                            rs_v4(i) <= valid4_inst1;
+                            rs_issued(i) <= '0';
+                            count <= count + 1;
+                            exit;
+                        end if;
+                    end loop;
+                end if;
+
+                -- Find an empty entry and writes the second instruction to it at the clock edge
+                if (wr_inst2 = '1') then
+                    for i in 0 to size - 1 loop
+                        if (rs_issued(i) = '1') then
+                            rs_control(i) <= control_inst2;
+                            rs_pc(i) <= pc_inst2;
+                            rs_opr1(i) <= opr1_inst2;
+                            rs_v1(i) <= valid1_inst2;
+                            rs_opr2(i) <= opr2_inst2;
+                            rs_v2(i) <= valid2_inst2;
+                            rs_imm_6(i) <= imm6_inst2;
+                            rs_c(i) <= c_inst2;
+                            rs_v3(i) <= valid3_inst2;
+                            rs_z(i) <= z_inst2;
+                            rs_v4(i) <= valid4_inst2;
+                            rs_issued(i) <= '0';
+                            count <= count + 1;
+                            exit;
+                        end if;
+                    end loop;
+                end if;
+
+                for i in 0 to size - 1 loop
+                    -- Updating operand 1 received from execution pipelines
+                    if (rs_v1(i) = '0' and rs_opr1(i)(7 downto 0) = rr1_ALU1 and finished_ALU1 = '1') then
+                        rs_opr1(i) <= data_ALU1;
+                        rs_v1(i) <= '1';
+                    end if;
+
+                    if (rs_v1(i) = '0' and rs_opr1(i)(7 downto 0) = rr1_ALU2 and finished_ALU2 = '1') then
+                        rs_opr1(i) <= data_ALU2;
+                        rs_v1(i) <= '1';
+                    end if;
+
+                    -- Updating operand 2 received from execution pipelines
+                    if (rs_v2(i) = '0' and rs_opr2(i)(7 downto 0) = rr1_ALU1 and finished_ALU1 = '1') then
+                        rs_opr2(i) <= data_ALU1;
+                        rs_v2(i) <= '1';
+                    end if;
+    
+                    if (rs_v2(i) = '0' and rs_opr2(i)(7 downto 0) = rr1_ALU2 and finished_ALU2 = '1') then
+                        rs_opr2(i) <= data_ALU2;
+                        rs_v2(i) <= '1';
+                    end if;
+                end loop;
+
+                for i in 0 to size - 1 loop
+                    -- Updating carry flag received from execution pipelines
+                    if (rs_v3(i) = '0' and rs_c(i) = rr2_ALU1 and finished_ALU1 = '1') then
+                        rs_c(i) <= "0000000" & c_ALU1_in;
+                        rs_v3(i) <= '1';
+                    end if;
+
+                    if (rs_v3(i) = '0' and rs_c(i) = rr2_ALU2 and finished_ALU2 = '1') then
+                        rs_c(i) <= "0000000" & c_ALU2_in;
+                        rs_v3(i) <= '1';
+                    end if;
+
+                    -- Updating zero flag received from execution pipelines
+                    if (rs_v4(i) = '0' and rs_z(i) = rr3_ALU1 and finished_ALU1 = '1') then
+                        rs_z(i) <= "0000000" & z_ALU1_in;
+                        rs_v4(i) <= '1';
+                    end if;
+    
+                    if (rs_v4(i) = '0' and rs_z(i) = rr3_ALU2 and finished_ALU2 = '1') then
+                        rs_z(i) <= "0000000" & z_ALU2_in;
+                        rs_v4(i) <= '1';
+                    end if;
+                end loop;
+                
+                -- Finding a ready entry and forwarding it to ALU pipeline-1
+                for i in 0 to size - 1 loop
+                    if (rd_ALU1 = '1' and rs_ready(i) = '1' and rs_issued(i) = '0') then
+                        if (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010" or rs_control(i)(5 downto 2) = "0000") then
+                            -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ
+                            pc_ALU1 <= rs_pc(i);
+                            ra_ALU1 <= rs_opr1(i);
+                            rb_ALU1 <= rs_opr2(i);
+                            imm6_ALU1 <= rs_imm_6(i);
+                            c_ALU1_out <= rs_c(i)(0);
+                            z_ALU1_out <= rs_z(i)(0); 
+                            control_ALU1 <= rs_control(i);
+                            finished_ALU1_s <= '1';
+
+                            rs_issued(i) <= '1';
+                            count <= count - 1;
+                        end if;
+                        exit;
+                    end if;
+                end loop;
+                
+                -- Finding a ready entry and forwarding it to ALU pipeline-2
                 for i in 0 to size-1 loop
-                    if (rs_issued(i) = '1') then
-                        rs_control(i) <= control_inst1;
-                        rs_pc(i) <= pc_inst1;
-                        rs_opr1(i) <= opr1_inst1;
-                        rs_v1(i) <= valid1_inst1;
-                        rs_opr2(i) <= opr2_inst1;
-                        rs_v2(i) <= valid2_inst1;
-                        rs_imm_6(i) <= imm6_inst1;
-                        rs_c(i) <= c_inst1;
-                        rs_v3(i) <= valid3_inst1;
-                        rs_z(i) <= z_inst1;
-                        rs_v4(i) <= valid4_inst1;
-                        rs_issued(i) <= '0';
-                        count <= count + 1;
+                    if (rd_ALU2 = '1' and rs_ready(i) = '1' and rs_issued(i) = '0') then
+                        if (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010" or rs_control(i)(5 downto 2) = "0000") then
+                            -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ
+                            pc_ALU2 <= rs_pc(i);
+                            ra_ALU2 <= rs_opr1(i);
+                            rb_ALU2 <= rs_opr2(i);
+                            imm6_ALU2 <= rs_imm_6(i);
+                            c_ALU2_out <= rs_c(i)(0);
+                            z_ALU2_out <= rs_z(i)(0);
+                            control_ALU2 <= rs_control(i);
+                            finished_ALU2_s <= '1';
+
+                            rs_issued(i) <= '1';
+                            count <= count - 1;
+                        end if;
                         exit;
                     end if;
                 end loop;
             end if;
+        end if;
+    end process rs_operation;
 
-            -- finds an empty entry and writes second instruction to it at the clock edge
-            if (wr_inst2 = '1') then
-                for i in 0 to size-1 loop
-                    if (rs_issued(i) = '1') then
-                        rs_control(i) <= control_inst2;
-                        rs_pc(i) <= pc_inst2;
-                        rs_opr1(i) <= opr1_inst2;
-                        rs_v1(i) <= valid1_inst2;
-                        rs_opr2(i) <= opr2_inst2;
-                        rs_v2(i) <= valid2_inst2;
-                        rs_imm_6(i) <= imm6_inst2;
-                        rs_c(i) <= c_inst2;
-                        rs_v3(i) <= valid3_inst2;
-                        rs_z(i) <= z_inst2;
-                        rs_v4(i) <= valid4_inst2;
-                        rs_issued(i) <= '0';
-                        count <= count + 1;
-                        exit;
+    update_ready_process: process(clr, rs_control, rs_v1, rs_v2, rs_v3, rs_v4)
+    begin
+        if (clr = '1') then
+            rs_ready <= (others => '0');
+        else
+            for i in 0 to size - 1 loop
+                if (rs_control(i)(5 downto 2) = "0000") then
+                    -- ADI
+                    rs_ready(i) <= rs_v1(i);
+                elsif (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010") then
+                    if (rs_control(i)(1 downto 0) = "00") then
+                        -- ADD, NDU
+                        rs_ready(i) <= rs_v1(i) AND rs_v2(i);
+                    elsif (rs_control(i)(1 downto 0) = "10") then
+                        -- ADC, NDC
+                        rs_ready(i) <= rs_v1(i) AND rs_v2(i) AND rs_v3(i);
+                    elsif (rs_control(i)(1 downto 0) = "01") then
+                        -- ADZ, NDZ
+                        rs_ready(i) <= rs_v1(i) AND rs_v2(i) AND rs_v4(i);
+                    else 
+                        -- ADL
+                        rs_ready(i) <= rs_v1(i) AND rs_v2(i);
                     end if;
-                end loop;
-            end if;
-        end if;
-    end process p1;
-
-    -- responsible for sending valid instructions to the execution pipelines
-    p2: process(clk, rd_ALU1, rd_ALU2, rs_ready, rs_issued, rs_control, rs_pc, rs_opr1, rs_opr2, rs_imm_6, rs_c, rs_z)
-        begin
-        if rising_edge(clk) then
-            -- finds a ready entry and forwards it to ALU pipeline-1
-            for i in 0 to size-1 loop
-                if (rd_ALU1 = '1' and rs_ready(i) = '1' and rs_issued(i) = '0') then
-                    if (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010" or rs_control(i)(5 downto 2) = "0000") then
-                        -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ
-                        pc_ALU1 <= rs_pc(i);
-                        ra_ALU1 <= rs_opr1(i);
-                        rb_ALU1 <= rs_opr2(i);
-                        imm6_ALU1 <= rs_imm_6(i);
-                        c_ALU1_out <= rs_c(i)(0);
-                        z_ALU1_out <= rs_z(i)(0); 
-                        control_ALU1 <= rs_control(i);
-                        rs_issued(i) <= '1';
-                        count <= count - 1;
-                        finished_ALU1_s <= '1';
-                    end if;
-                    exit;
-                end if;
-            end loop;
-            
-            -- finds a ready entry and forwards it to ALU pipeline-2
-            for i in 0 to size-1 loop
-                if (rd_ALU2 = '1' and rs_ready(i) = '1' and rs_issued(i) = '0') then
-                    if (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010" or rs_control(i)(5 downto 2) = "0000") then
-                        -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ
-                        pc_ALU2 <= rs_pc(i);
-                        ra_ALU2 <= rs_opr1(i);
-                        rb_ALU2 <= rs_opr2(i);
-                        imm6_ALU2 <= rs_imm_6(i);
-                        c_ALU2_out <= rs_c(i)(0);
-                        z_ALU2_out <= rs_z(i)(0);
-                        control_ALU2 <= rs_control(i);
-                        rs_issued(i) <= '1';
-                        count <= count - 1;
-                        finished_ALU2_s <= '1';
-                    end if;
-                    exit;
-                end if;
-            end loop;
-        end if;
-    end process p2;
-
-    -- responsible for updating operand-1 received from execution pipelines
-    p3: process(clk, rs_v1, rs_opr1, rr1_ALU1, rr1_ALU2, finished_ALU1, finished_ALU2, data_ALU1, data_ALU2)
-        begin
-        -- updates operand 1 if tag matches
-        if rising_edge(clk) then
-            for i in 0 to size-1 loop
-                if (rs_v1(i) = '0' and rs_opr1(i)(7 downto 0) = rr1_ALU1 and finished_ALU1 = '1') then
-                    rs_opr1(i) <= data_ALU1;
-                    rs_v1(i) <= '1';
-                end if;
-
-                if (rs_v1(i) = '0' and rs_opr1(i)(7 downto 0) = rr1_ALU2 and finished_ALU2 = '1') then
-                    rs_opr1(i) <= data_ALU2;
-                    rs_v1(i) <= '1';
-                end if;
-            end loop;
-        end if;
-    end process p3;
-
-    -- responsible for updating operand-2 received from execution pipelines
-    p4: process(clk, rs_v2, rs_opr2, rr1_ALU1, rr1_ALU2, finished_ALU1, finished_ALU2, data_ALU1, data_ALU2)
-        begin
-        -- updates operand 2 if tag matches
-        if rising_edge(clk) then
-            for i in 0 to size-1 loop
-                if (rs_v2(i) = '0' and rs_opr2(i)(7 downto 0) = rr1_ALU1 and finished_ALU1 = '1') then
-                    rs_opr2(i) <= data_ALU1;
-                    rs_v2(i) <= '1';
-                end if;
-
-                if (rs_v2(i) = '0' and rs_opr2(i)(7 downto 0) = rr1_ALU2 and finished_ALU2 = '1') then
-                    rs_opr2(i) <= data_ALU2;
-                    rs_v2(i) <= '1';
-                end if;
-            end loop;
-        end if;
-    end process p4;
-
-    -- responsible for updating carry flag received from execution pipelines
-    p5: process(clk, rs_v3, rs_c, rr2_ALU1, rr2_ALU2, finished_ALU1, finished_ALU2, c_ALU1_in, c_ALU2_in)
-        begin
-        -- updates carry flag if tag matches
-        if rising_edge(clk) then
-            for i in 0 to size-1 loop
-                if (rs_v3(i) = '0' and rs_c(i) = rr2_ALU1 and finished_ALU1 = '1') then
-                    rs_c(i) <= "0000000" & c_ALU1_in;
-                    rs_v3(i) <= '1';
-                end if;
-
-                if (rs_v3(i) = '0' and rs_c(i) = rr2_ALU2 and finished_ALU2 = '1') then
-                    rs_c(i) <= "0000000" & c_ALU2_in;
-                    rs_v3(i) <= '1';
-                end if;
-            end loop;
-        end if;
-    end process p5;
-
-    -- responsible for updating zero flag received from execution pipelines
-    p6: process(clk, rs_v3, rs_c, rr3_ALU1, rr3_ALU2, finished_ALU1, finished_ALU2, z_ALU1_in, z_ALU2_in)
-        begin
-        -- updates zero flag if tag matches
-        if rising_edge(clk) then
-            for i in 0 to size-1 loop
-                if (rs_v4(i) = '0' and rs_z(i) = rr3_ALU1 and finished_ALU1 = '1') then
-                    rs_z(i) <= "0000000" & z_ALU1_in;
-                    rs_v4(i) <= '1';
-                end if;
-
-                if (rs_v4(i) = '0' and rs_z(i) = rr3_ALU2 and finished_ALU2 = '1') then
-                    rs_z(i) <= "0000000" & z_ALU2_in;
-                    rs_v4(i) <= '1';
-                end if;
-            end loop;
-        end if;
-    end process p6;
-
-    p7: process(rs_control, rs_v1, rs_v2, rs_v3, rs_v4)
-        begin
-        -- update the ready bit
-        for i in 0 to size-1 loop
-            if (rs_control(i)(5 downto 2) = "0000") then
-                -- ADI
-                rs_ready(i) <= rs_v1(i);
-            elsif (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010") then
-                if (rs_control(i)(1 downto 0) = "00") then
-                    -- ADD, NDU
-                    rs_ready(i) <= rs_v1(i) AND rs_v2(i);
-                elsif (rs_control(i)(1 downto 0) = "10") then
-                    -- ADC, NDC
-                    rs_ready(i) <= rs_v1(i) AND rs_v2(i) AND rs_v3(i);
-                elsif (rs_control(i)(1 downto 0) = "01") then
-                    -- ADZ, NDZ
-                    rs_ready(i) <= rs_v1(i) AND rs_v2(i) AND rs_v4(i);
                 else 
-                    -- ADL
-                    rs_ready(i) <= rs_v1(i) AND rs_v2(i);
+                    -- Default (more cases for other instructions)
+                    rs_ready(i) <= rs_v1(i) AND rs_v2(i) AND rs_v3(i) AND rs_v4(i);
                 end if;
-            else 
-                -- Default (more cases for other instructions)
-                rs_ready(i) <= rs_v1(i) AND rs_v2(i) AND rs_v3(i) AND rs_v4(i);
-            end if;
-        end loop;
-    end process p7;
+            end loop;
+        end if;
+    end process update_ready_process;
 
     -- sets the full and empty bits to take care of stalls
-    almost_full <= '1' when count = size-1 else '0';
+    almost_full <= '1' when count = size - 1 else '0';
     full  <= '1' when count = size else '0';
     empty <= '1' when count = 0 else '0';
     finished_ALU1_out <= '1' when finished_ALU1_s = '1' else '0';
