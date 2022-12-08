@@ -57,7 +57,7 @@ architecture behavioural of rs is
     signal rs_z: rs_type_8:= (others => (others => '0'));
     signal rs_v4: rs_type_1:= (others => '0');
     signal rs_ready: rs_type_1:= (others => '0');
-    signal rs_issued: rs_type_1:= (others => '0');
+    signal rs_issued: rs_type_1:= (others => '1');
 
     signal count: integer range 0 to size := 0;
     signal almost_full: std_logic;
@@ -66,13 +66,51 @@ architecture behavioural of rs is
 
     signal finished_ALU1_s, finished_ALU2_s: std_logic;
 
+    component DualPriorityEncoderActiveHigh is
+        generic (
+            input_width : integer := 2 ** 8;
+            output_width : integer := 8
+        );
+        port (
+            a: in std_logic_vector(input_width - 1 downto 0);
+            y_first: out std_logic_vector(output_width - 1 downto 0);
+            valid_first: out std_logic;
+            y_second: out std_logic_vector(output_width - 1 downto 0);
+            valid_second: out std_logic
+        );
+    end component;
+
+    signal rs_issued_sig: std_logic_vector(size-1 downto 0) := (others => '1');
+    signal first_free_entry, second_free_entry: std_logic_vector(7 downto 0) := (others => '0');
+    signal valid_first_sig, valid_second_sig: std_logic := '0';
+
 begin
+    allocate_unit: DualPriorityEncoderActiveHigh
+        generic map(
+            input_width => 2 ** 8,
+            output_width => 8
+        )
+        port map(
+            a => rs_issued_sig,
+            y_first => first_free_entry,
+            valid_first => valid_first_sig,
+            y_second => second_free_entry,
+            valid_second => valid_second_sig
+        );
+
+    convert_to_sig: process(rs_issued)
+    begin
+        for i in 0 to size -1 loop
+            rs_issued_sig(i) <= rs_issued(i);
+        end loop;
+    end process convert_to_sig;
+
     rs_operation: process(clr, clk, wr_inst1, wr_inst2, rs_ready, rs_issued, rs_control, control_inst1, control_inst2, 
     pc_inst1, pc_inst2, opr1_inst1, opr1_inst2, opr2_inst1, opr2_inst2, valid1_inst1, valid1_inst2, valid2_inst1, 
     valid2_inst2, imm6_inst1, imm6_inst2, c_inst1, c_inst2, valid3_inst1, valid3_inst2, z_inst1, z_inst2, valid4_inst1, 
     valid4_inst2, rs_v1, rs_opr1, rs_v2, rs_opr2, rr1_ALU1, rr1_ALU2, data_ALU1, data_ALU2, rs_v3, rs_c, rr2_ALU1, 
     rr2_ALU2, c_ALU1_in, c_ALU2_in, rs_v4, rs_z, rr3_ALU1, rr3_ALU2, z_ALU1_in, z_ALU2_in, finished_ALU1, finished_ALU2,
-    rd_ALU1, rd_ALU2, rs_pc, rs_imm_6)
+    rd_ALU1, rd_ALU2, rs_pc, rs_imm_6, valid_first_sig, valid_second_sig)
     begin
         if (clr = '1') then
             rs_control <= (others => (others => '0'));
@@ -85,7 +123,7 @@ begin
             rs_v3 <= (others => '0');
             rs_z <= (others => (others => '0'));
             rs_v4 <= (others => '0');
-            rs_issued <= (others => '0');
+            rs_issued <= (others => '1');
             count <= 0;
 
             pc_ALU1 <= (others => '0');
@@ -108,48 +146,44 @@ begin
 
         else
             if (rising_edge(clk)) then
-                -- Find an empty entry and write the first instruction to it at the clock edge
+                -- Write the first instruction to it at the clock edge
                 if (wr_inst1 = '1') then
-                    for i in 0 to size - 1 loop
-                        if (rs_issued(i) = '1') then
-                            rs_control(i) <= control_inst1;
-                            rs_pc(i) <= pc_inst1;
-                            rs_opr1(i) <= opr1_inst1;
-                            rs_v1(i) <= valid1_inst1;
-                            rs_opr2(i) <= opr2_inst1;
-                            rs_v2(i) <= valid2_inst1;
-                            rs_imm_6(i) <= imm6_inst1;
-                            rs_c(i) <= c_inst1;
-                            rs_v3(i) <= valid3_inst1;
-                            rs_z(i) <= z_inst1;
-                            rs_v4(i) <= valid4_inst1;
-                            rs_issued(i) <= '0';
-                            count <= count + 1;
-                            exit;
-                        end if;
-                    end loop;
+                    rs_control(to_integer(unsigned(first_free_entry))) <= control_inst1;
+                    rs_pc(to_integer(unsigned(first_free_entry))) <= pc_inst1;
+                    rs_opr1(to_integer(unsigned(first_free_entry))) <= opr1_inst1;
+                    rs_v1(to_integer(unsigned(first_free_entry))) <= valid1_inst1;
+                    rs_opr2(to_integer(unsigned(first_free_entry))) <= opr2_inst1;
+                    rs_v2(to_integer(unsigned(first_free_entry))) <= valid2_inst1;
+                    rs_imm_6(to_integer(unsigned(first_free_entry))) <= imm6_inst1;
+                    rs_c(to_integer(unsigned(first_free_entry))) <= c_inst1;
+                    rs_v3(to_integer(unsigned(first_free_entry))) <= valid3_inst1;
+                    rs_z(to_integer(unsigned(first_free_entry))) <= z_inst1;
+                    rs_v4(to_integer(unsigned(first_free_entry))) <= valid4_inst1;
+                    rs_issued(to_integer(unsigned(first_free_entry))) <= '0';
                 end if;
 
-                -- Find an empty entry and writes the second instruction to it at the clock edge
+                -- Write the second instruction to it at the clock edge
                 if (wr_inst2 = '1') then
-                    for i in 0 to size - 1 loop
-                        if (rs_issued(i) = '1') then
-                            rs_control(i) <= control_inst2;
-                            rs_pc(i) <= pc_inst2;
-                            rs_opr1(i) <= opr1_inst2;
-                            rs_v1(i) <= valid1_inst2;
-                            rs_opr2(i) <= opr2_inst2;
-                            rs_v2(i) <= valid2_inst2;
-                            rs_imm_6(i) <= imm6_inst2;
-                            rs_c(i) <= c_inst2;
-                            rs_v3(i) <= valid3_inst2;
-                            rs_z(i) <= z_inst2;
-                            rs_v4(i) <= valid4_inst2;
-                            rs_issued(i) <= '0';
-                            count <= count + 1;
-                            exit;
-                        end if;
-                    end loop;
+                    rs_control(to_integer(unsigned(second_free_entry))) <= control_inst2;
+                    rs_pc(to_integer(unsigned(second_free_entry))) <= pc_inst2;
+                    rs_opr1(to_integer(unsigned(second_free_entry))) <= opr1_inst2;
+                    rs_v1(to_integer(unsigned(second_free_entry))) <= valid1_inst2;
+                    rs_opr2(to_integer(unsigned(second_free_entry))) <= opr2_inst2;
+                    rs_v2(to_integer(unsigned(second_free_entry))) <= valid2_inst2;
+                    rs_imm_6(to_integer(unsigned(second_free_entry))) <= imm6_inst2;
+                    rs_c(to_integer(unsigned(second_free_entry))) <= c_inst2;
+                    rs_v3(to_integer(unsigned(second_free_entry))) <= valid3_inst2;
+                    rs_z(to_integer(unsigned(second_free_entry))) <= z_inst2;
+                    rs_v4(to_integer(unsigned(second_free_entry))) <= valid4_inst2;
+                    rs_issued(to_integer(unsigned(second_free_entry))) <= '0';
+                end if;
+
+                if (wr_inst1 = '1' and wr_inst2 = '1') then
+                    count <= count + 2;
+                elsif (wr_inst1 = '1') then
+                    count <= count + 1;
+                elsif (wr_inst2 = '1') then
+                    count <= count + 1;
                 end if;
 
                 for i in 0 to size - 1 loop
