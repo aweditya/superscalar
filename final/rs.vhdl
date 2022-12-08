@@ -275,30 +275,9 @@ begin
                         rs_v4(i) <= '1';
                     end if;
                 end loop;
-                
-                -- Finding a ready entry and forwarding it to ALU pipeline-1
-                for i in 0 to size - 1 loop
-                    if (rd_ALU1 = '1' and rs_ready(i) = '1' and rs_issued(i) = '0') then
-                        if (rs_control(i)(5 downto 2) = "0001" or rs_control(i)(5 downto 2) = "0010" or rs_control(i)(5 downto 2) = "0000") then
-                            -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ
-                            pc_ALU1 <= rs_pc(i);
-                            ra_ALU1 <= rs_opr1(i);
-                            rb_ALU1 <= rs_opr2(i);
-                            imm6_ALU1 <= rs_imm_6(i);
-                            c_ALU1_out <= rs_c(i)(0);
-                            z_ALU1_out <= rs_z(i)(0); 
-                            control_ALU1 <= rs_control(i);
-                            finished_ALU1_s <= '1';
-
-                            rs_issued(i) <= '1';
-                            count <= count - 1;
-                        end if;
-                        exit;
-                    end if;
-                end loop;
 
                 -- Finding a ready entry and forwarding it to ALU pipeline-1
-                if (rd_ALU1 = '1') then
+                if (rd_ALU1 = '1' and (not issue_valid_first_sig)) then
                     pc_ALU1 <= rs_pc(to_integer(unsigned(first_ready_inst)));
                     ra_ALU1 <= rs_opr1(to_integer(unsigned(first_ready_inst)));
                     rb_ALU1 <= rs_opr2(to_integer(unsigned(first_ready_inst)));
@@ -311,7 +290,7 @@ begin
                 end if;
 
                 -- Finding a ready entry and forwarding it to ALU pipeline-2
-                if (rd_ALU2 = '1') then
+                if (rd_ALU2 = '1' and (not issue_valid_second_sig)) then
                     pc_ALU2 <= rs_pc(to_integer(unsigned(second_ready_inst)));
                     ra_ALU2 <= rs_opr1(to_integer(unsigned(second_ready_inst)));
                     rb_ALU2 <= rs_opr2(to_integer(unsigned(second_ready_inst)));
