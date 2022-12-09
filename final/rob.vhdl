@@ -133,7 +133,7 @@ begin
                 end if;
 
                 -- Keep track of the rd_index     
-                if (rob_finished(i) = '1') then
+                if (rob_finished(head) = '1') then
                     if (rd = '1' and not (count = 0)) then
                         if head = size - 1 then
                             head := 0;
