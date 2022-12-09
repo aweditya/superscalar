@@ -141,6 +141,7 @@ begin
                             head := head + 1;
                         end if;
     
+                        rob_finished(head) <= '0';
                         rob_completed(head) <= '1';
                         count := count - 1;
                     end if;
