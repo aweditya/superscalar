@@ -109,5 +109,5 @@ begin
         modify_zero <= '1';
     end process modify_zero_process;
 
-    control_out <= mux_select & alu_select & modify_carry & modify_zero;
+    control_out <=  modify_zero & modify_carry & alu_select & mux_select;
 end architecture behavioural;

@@ -14,17 +14,16 @@ entity alu is
 end alu;
 
 architecture a1 of alu is
-  function add(A: in std_logic_vector(15 downto 0); B: in std_logic_vector(15 downto 0))
+  function add(in1: in std_logic_vector(15 downto 0); in2: in std_logic_vector(15 downto 0))
         return std_logic_vector is
         variable sum: std_logic_vector(16 downto 0) := (others => '0');
 	variable c: std_logic_vector(15 downto 0);
-	variable i: integer;
         begin
-        sum(0) := A(0) xor B(0);
-        c(0) := A(0) and B(0);
+        sum(0) := in1(0) xor in2(0);
+        c(0) := in1(0) and in2(0);
         Adder:  for i in 1 to 15 loop
-                sum(i) := A(i) xor B(i) xor c(i-1);
-                c(i) := (A(i) and B(i)) or (A(i) and c(i-1)) or (B(i) and c(i-1));
+                sum(i) := in1(i) xor in2(i) xor c(i-1);
+                c(i) := (in1(i) and in2(i)) or (in1(i) and c(i-1)) or (in2(i) and c(i-1));
                 end loop;
         sum(16) := c(15);
         return sum;
@@ -52,6 +51,7 @@ begin
         end if;
     elsif S="11" then
         temp := '0'&(A xor B);
+        Op<=temp(15 downto 0);
         if temp="00000000000000000" then
         carry <= '0';
                 zero <= '1';
@@ -59,7 +59,10 @@ begin
         zero <= '0';
         end if;
     else
-      null;
+        temp := "00000000000000000";
+        Op<=temp(15 downto 0);
+        carry <= '0';
+        zero <= '0';
     end if;
 end process;
 end a1;
