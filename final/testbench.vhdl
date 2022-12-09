@@ -12,7 +12,7 @@ architecture behavioural of tb is
         );
     end component;
 
-    signal clock, clear: std_logic := '0';
+    signal clock, clear: std_logic := '1';
     signal out_proc: std_logic_vector(63 downto 0);
 
 begin
@@ -26,89 +26,106 @@ begin
     main: process
     begin
         clear <= '1';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '1';
         clock <= '1';
         wait for 100 ns;
 
         clear <= '0';
         clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
         wait for 100 ns;
 
         clear <= '0';
         clock <= '0';
         wait for 100 ns;
         
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
+        report "Testing completed";
         wait;
-        
     end process;
 end architecture behavioural;

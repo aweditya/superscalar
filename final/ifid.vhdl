@@ -26,7 +26,7 @@ begin
 		if clr = '1' then
 			IFID_IMem <= (others => '0');
 			IFID_PC <= (others => '0');
-			IFID_inc <= (others => '0');
+			IFID_inc <= (0 => '1', others => '0');
 		else
 			if rising_edge(clk) then
 				if wr_IFID = '1' then
