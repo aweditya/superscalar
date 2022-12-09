@@ -148,12 +148,8 @@ begin
         clear <= '0';
         clock <= '0';
         wait for 100 ns;
-<<<<<<< HEAD
-=======
 
-        
-        wait;
->>>>>>> origin/finale_finale
+    
         
         report "Testing completed";
         wait;
