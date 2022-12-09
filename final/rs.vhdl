@@ -39,25 +39,21 @@ end rs;
 architecture behavioural of rs is
     -- defining the types required for different-sized columns
     type rs_type_4 is array(size-1 downto 0) of std_logic_vector(3 downto 0);
-    type rs_type_16 is array(size-1 downto 0) of std_logic_vector(15 downto 0);
-    type rs_type_1 is array(size-1 downto 0) of std_logic;
     type rs_type_6 is array(size-1 downto 0) of std_logic_vector(5 downto 0);
     type rs_type_8 is array(size-1 downto 0) of std_logic_vector(7 downto 0);
+    type rs_type_16 is array(size-1 downto 0) of std_logic_vector(15 downto 0);
 
     -- defining the required columns, each with (size) entries
     signal rs_control: rs_type_6:= (others => (others => '0'));
     signal rs_pc: rs_type_16:= (others => (others => '0'));
     signal rs_opr1: rs_type_16:= (others => (others => '0'));
-    signal rs_v1: rs_type_1:= (others => '0');
     signal rs_opr2: rs_type_16:= (others => (others => '0'));
-    signal rs_v2: rs_type_1:= (others => '0');
     signal rs_imm_6: rs_type_6:= (others => (others => '0'));
     signal rs_c: rs_type_8:= (others => (others => '0'));
-    signal rs_v3: rs_type_1:= (others => '0');
     signal rs_z: rs_type_8:= (others => (others => '0'));
-    signal rs_v4: rs_type_1:= (others => '0');
-    signal rs_ready: rs_type_1:= (others => '0');
-    signal rs_issued: rs_type_1:= (others => '1');
+    
+    signal rs_v1, rs_v2, rs_v3, rs_v4: std_logic_vector(size - 1 downto 0) := (others => '0');
+    signal rs_ready, rs_issued: std_logic_vector(size - 1 downto 0) := (others => '0');
 
     signal count: integer range 0 to size := 0;
     signal almost_full: std_logic;
@@ -80,11 +76,9 @@ architecture behavioural of rs is
         );
     end component;
 
-    signal rs_issued_sig: std_logic_vector(size-1 downto 0) := (others => '1');
     signal first_free_entry, second_free_entry: std_logic_vector(7 downto 0) := (others => '0');
     signal valid_first_sig, valid_second_sig: std_logic := '0';
 
-    signal rs_ready_sig: std_logic_vector(size-1 downto 0) := (others => '1');
     signal is_alu_instruction: std_logic_vector(size-1 downto 0) := (others => '1');
     signal ready_for_alu_pipeline: std_logic_vector(size-1 downto 0) := (others => '0');
     signal first_ready_inst, second_ready_inst: std_logic_vector(7 downto 0) := (others => '0');
@@ -97,26 +91,12 @@ begin
             output_width => 8
         )
         port map(
-            a => rs_issued_sig,
+            a => rs_issued,
             y_first => first_free_entry,
             valid_first => valid_first_sig,
             y_second => second_free_entry,
             valid_second => valid_second_sig
         );
-
-    convert_rs_issued_to_sig: process(rs_issued)
-    begin
-        for i in 0 to size -1 loop
-            rs_issued_sig(i) <= rs_issued(i);
-        end loop;
-    end process convert_rs_issued_to_sig;
-
-    convert_rs_ready_to_sig: process(rs_ready)
-    begin
-        for i in 0 to size -1 loop
-            rs_ready_sig(i) <= rs_ready(i);
-        end loop;
-    end process convert_rs_ready_to_sig;
 
     check_if_alu_instruction: process(rs_control)
     begin
@@ -129,9 +109,9 @@ begin
         end loop;
     end process check_if_alu_instruction;
 
-    is_ready_for_alu_pipeline: process(is_alu_instruction, rs_ready_sig, rs_issued_sig)
+    is_ready_for_alu_pipeline: process(is_alu_instruction, rs_ready, rs_issued)
     begin
-        ready_for_alu_pipeline <= is_alu_instruction and rs_ready_sig and (not rs_issued_sig);
+        ready_for_alu_pipeline <= is_alu_instruction and rs_ready and (not rs_issued);
     end process is_ready_for_alu_pipeline;
 
     issuing_unit: DualPriorityEncoderActiveHigh
@@ -250,9 +230,7 @@ begin
                         rs_opr2(i) <= data_ALU2;
                         rs_v2(i) <= '1';
                     end if;
-                end loop;
 
-                for i in 0 to size - 1 loop
                     -- Updating carry flag received from execution pipelines
                     if (rs_v3(i) = '0' and rs_c(i) = rr2_ALU1 and finished_ALU1 = '1') then
                         rs_c(i) <= "0000000" & c_ALU1_in;
@@ -277,7 +255,7 @@ begin
                 end loop;
 
                 -- Finding a ready entry and forwarding it to ALU pipeline-1
-                if (rd_ALU1 = '1' and issue_valid_first_sig = '0') then
+                if (rd_ALU1 = '1' and rs_issued(to_integer(unsigned(first_ready_inst))) = '0' and issue_valid_first_sig = '0') then
                     pc_ALU1 <= rs_pc(to_integer(unsigned(first_ready_inst)));
                     ra_ALU1 <= rs_opr1(to_integer(unsigned(first_ready_inst)));
                     rb_ALU1 <= rs_opr2(to_integer(unsigned(first_ready_inst)));
@@ -287,10 +265,12 @@ begin
                     control_ALU1 <= rs_control(to_integer(unsigned(first_ready_inst)));
                     rs_issued(to_integer(unsigned(first_ready_inst))) <= '1';
                     finished_ALU1_s <= '1';
+                else
+                    finished_ALU1_s <= '0';
                 end if;
 
                 -- Finding a ready entry and forwarding it to ALU pipeline-2
-                if (rd_ALU2 = '1' and issue_valid_second_sig = '0') then
+                if (rd_ALU2 = '1' and rs_issued(to_integer(unsigned(second_ready_inst))) = '0' and issue_valid_second_sig = '0') then
                     pc_ALU2 <= rs_pc(to_integer(unsigned(second_ready_inst)));
                     ra_ALU2 <= rs_opr1(to_integer(unsigned(second_ready_inst)));
                     rb_ALU2 <= rs_opr2(to_integer(unsigned(second_ready_inst)));
@@ -300,6 +280,8 @@ begin
                     control_ALU2 <= rs_control(to_integer(unsigned(second_ready_inst)));
                     rs_issued(to_integer(unsigned(second_ready_inst))) <= '1';
                     finished_ALU2_s <= '1';
+                else
+                    finished_ALU2_s <= '0';
                 end if;
 
                 --if (rd_ALU1 = '1' and rd_ALU2 = '1') then
@@ -348,10 +330,11 @@ begin
     almost_full <= '1' when count = size - 1 else '0';
     full  <= '1' when count = size else '0';
     empty <= '1' when count = 0 else '0';
-    finished_ALU1_out <= '1' when finished_ALU1_s = '1' else '0';
-    finished_ALU2_out <= '1' when finished_ALU2_s = '1' else '0';
     almost_full_out <= almost_full;
     full_out <= full;
     empty_out <= empty; 
+
+    finished_ALU1_out <= finished_ALU1_s;
+    finished_ALU2_out <= finished_ALU2_s;
     
 end behavioural;
