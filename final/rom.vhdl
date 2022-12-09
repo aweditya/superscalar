@@ -13,19 +13,10 @@ architecture behavioural of ROM is
 	type mem_index is array(63 downto 0) of std_logic_vector(15 downto 0);
 	signal mem: mem_index := (
 		0 => "0000000001000111", -- ADI r0,r1,000111
-		1 => "0000001010001000", -- ADI r1,r2,001000
+		1 => "0000000010001000", -- ADI r0,r2,001000
 		2 => "0001001010011000", -- ADD r1,r2,r3
 		3 => "0001001011100000", -- ADD r1,r3,r4
-		4 => "0001010110101000", -- ADD r2,r6,r5
-		5 => "0001011001010000", -- ADD r3,r1,r2
-		6 => "0000000001000111", -- ADI r0,r1,000111
-		7 => "0000000010001000", -- ADI r0,r2,001000
-		8 => "0001001010011000", -- ADD r1,r2,r3
-		9 => "0001001011100000", -- ADD r1,r3,r4
-		10 => "0001010110101000", --ADD r2,r6,r5
-
-		
-		others => "1111111111111111"
+		others => (others => '1')
 	);
 	signal addr: std_logic_vector(15 downto 0);
 

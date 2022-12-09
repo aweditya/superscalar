@@ -6,8 +6,6 @@ entity IFStage is
     port(
         reset: in std_logic;
         clk: in std_logic;
-        wr_fetch: in std_logic;
-        
 
         wr_IFID: out std_logic; -- Logic required in case of pipeline stall. For the time being, we always write
         IFID_inc_D, IFID_PC_D: out std_logic_vector(15 downto 0);
@@ -41,9 +39,9 @@ architecture behavioural of IFStage is
 begin
     pc_inc_sig <= std_logic_vector(unsigned(pc_in_sig) + 1);
 
-    pc_increment_process: process(clk, pc_in_sig, wr_fetch)
+    pc_increment_process: process(clk, pc_in_sig)
     begin
-        if (rising_edge(clk) and wr_fetch='1') then
+        if (rising_edge(clk)) then
             pc_in_sig <= std_logic_vector(unsigned(pc_in_sig) + 2);
         end if;
     end process pc_increment_process;

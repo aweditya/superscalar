@@ -12,16 +12,14 @@ END ENTITY;
 ARCHITECTURE arch OF datapath IS
     -- Instruction Fetch --
     COMPONENT IFStage IS
-    port(
-        reset: in std_logic;
-        clk: in std_logic;
-        wr_fetch: in std_logic;
-        
+        PORT (
+            reset : IN STD_LOGIC;
+            clk : IN STD_LOGIC;
 
-        wr_IFID: out std_logic; -- Logic required in case of pipeline stall. For the time being, we always write
-        IFID_inc_D, IFID_PC_D: out std_logic_vector(15 downto 0);
-        IFID_IMem_D: out std_logic_vector(31 downto 0)
-    );
+            wr_IFID : OUT STD_LOGIC; -- Logic required in case of pipeline stall. For the time being, we always write
+            IFID_inc_D, IFID_PC_D : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+            IFID_IMem_D : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+        );
     END COMPONENT IFStage;
 
     COMPONENT IFID IS
@@ -169,29 +167,29 @@ ARCHITECTURE arch OF datapath IS
     END COMPONENT rob;
     -- 
     -- Control Unit
-   COMPONENT Control IS
-       PORT (
-           --INPUTS------------------------------------
-           clk : IN STD_LOGIC;
-           rst : IN STD_LOGIC;
-           wr_fetch : IN STD_LOGIC;
-           rs_full_input : IN STD_LOGIC; --connect to full_out,
-           rs_almost_full_input : IN STD_LOGIC; --connect to almost_full_out,
-           wr_wb_mem : IN STD_LOGIC;
-           wr_wb_regfile : IN STD_LOGIC;
-           end_of_program : IN STD_LOGIC; -- This will be used to stop the pipeline. Equivalent to a permanent stall, differs in functioning.
-           --OUTPUTS----------------------------------
-           adv_fetch : OUT STD_LOGIC;
-           adv_rs : OUT STD_LOGIC;
-           adv_wb : OUT STD_LOGIC;
-           rs_full : OUT STD_LOGIC; --connect to rs_almost_full, rs_full of id stage
-           rs_almost_full : OUT STD_LOGIC;
-           adv_rob : OUT STD_LOGIC;
-           flush_out : OUT STD_LOGIC; -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
-           stall_out : OUT STD_LOGIC -- For completeness sake, will remove if not required.
-
-       );
-   END COMPONENT;
+--    COMPONENT Control IS
+--        PORT (
+--            --INPUTS------------------------------------
+--            clk : IN STD_LOGIC;
+--            rst : IN STD_LOGIC;
+--            wr_fetch : IN STD_LOGIC;
+--            rs_full_input : IN STD_LOGIC; --connect to full_out,
+--            rs_almost_full_input : IN STD_LOGIC; --connect to almost_full_out,
+--            wr_wb_mem : IN STD_LOGIC;
+--            wr_wb_regfile : IN STD_LOGIC;
+--            end_of_program : IN STD_LOGIC; -- This will be used to stop the pipeline. Equivalent to a permanent stall, differs in functioning.
+--            --OUTPUTS----------------------------------
+--            adv_fetch : OUT STD_LOGIC;
+--            adv_rs : OUT STD_LOGIC;
+--            adv_wb : OUT STD_LOGIC;
+--            rs_full : OUT STD_LOGIC; --connect to rs_almost_full, rs_full of id stage
+--            rs_almost_full : OUT STD_LOGIC;
+--            adv_rob : OUT STD_LOGIC;
+--            flush_out : OUT STD_LOGIC; -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
+--            stall_out : OUT STD_LOGIC -- For completeness sake, will remove if not required.
+--
+--        );
+--    END COMPONENT;
     -- 
 
     --signals for if and fetch buffer --
@@ -252,12 +250,12 @@ ARCHITECTURE arch OF datapath IS
     SIGNAL almost_full_out_CT : STD_LOGIC;
     SIGNAL full_out_CT : STD_LOGIC;
     SIGNAL empty_out_CT : STD_LOGIC;
-   SIGNAL CT_rs_full : STD_LOGIC;
-   SIGNAL CT_rs_almost_full : STD_LOGIC;
-   SIGNAL CT_stall_out : STD_LOGIC;
-   SIGNAL CT_flush_out : STD_LOGIC;
-   SIGNAL from_future_default_set : STD_LOGIC := '1';
-   SIGNAL from_future_default_unset : STD_LOGIC := '0';
+--    SIGNAL CT_rs_full : STD_LOGIC;
+--    SIGNAL CT_rs_almost_full : STD_LOGIC;
+--    SIGNAL CT_stall_out : STD_LOGIC;
+--    SIGNAL CT_flush_out : STD_LOGIC;
+--    SIGNAL from_future_default_set : STD_LOGIC := '1';
+--    SIGNAL from_future_default_unset : STD_LOGIC := '0';
     ------------------------
 
 BEGIN
@@ -265,9 +263,8 @@ BEGIN
     instfetch : IFStage PORT MAP(
         reset => reset,
         clk => clk,
-        wr_fetch => wr_IFID_IFFB,
         
-        -- wr_IFID => wr_IFID_IFFB,
+        wr_IFID => wr_IFID_IFFB,
         IFID_inc_D => IFID_inc_D_IFFB,
         IFID_PC_D => IFID_PC_D_IFFB,
         IFID_IMem_D => IFID_IMem_D_IFFB
@@ -498,26 +495,26 @@ BEGIN
         completed => completed_WD
     );
 
-   Controller : Control PORT MAP(
-
-       --INPUTS------------------------------------
-       clk => clk,
-       rst => reset,
-       wr_fetch => from_future_default_set,
-       rs_full_input => full_out_CT,
-       rs_almost_full_input => almost_full_out_CT, --connect to almost_full_out of rs
-       wr_wb_mem => from_future_default_set,
-       wr_wb_regfile => from_future_default_set,
-       end_of_program    => from_future_default_unset, --connect to end_of_program of fetch stage       
-       -- empty_out_CT unused
-       --OUTPUTS----------------------------------
-       adv_fetch =>wr_IFID_IFFB,
-       -- adv_rs =>
-       -- adv_wb =>
-       rs_full => CT_rs_full, --connect to rs_almost_full, rs_full of id stage
-       rs_almost_full => CT_rs_almost_full,
-       flush_out => CT_flush_out, -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
-       stall_out => CT_stall_out,
-       adv_rob => open
-   );
+--    Controller : Control PORT MAP(
+--
+--        --INPUTS------------------------------------
+--        clk => clk,
+--        rst => reset,
+--        wr_fetch => '1',
+--        rs_full_input => full_out_CT,
+--        rs_almost_full_input => almost_full_out_CT, --connect to almost_full_out of rs
+--        wr_wb_mem => from_future_default_set,
+--        wr_wb_regfile => from_future_default_set,
+--        end_of_program => from_future_default_unset, --connect to end_of_program of fetch stage       
+--        -- empty_out_CT unused
+--        --OUTPUTS----------------------------------
+--        -- adv_fetch =>
+--        -- adv_rs =>
+--        -- adv_wb =>
+--        rs_full => CT_rs_full, --connect to rs_almost_full, rs_full of id stage
+--        rs_almost_full => CT_rs_almost_full,
+--        flush_out => CT_flush_out, -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
+--        stall_out => CT_stall_out,
+--        adv_rob => open
+--    );
 END ARCHITECTURE;
