@@ -5,7 +5,7 @@ USE ieee.numeric_std.ALL;
 ENTITY datapath IS
     PORT (
         reset, clk : IN STD_LOGIC;
-        output_proc : OUT STD_LOGIC_VECTOR(63 DOWNTO 0)
+        output_proc : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
     );
 END ENTITY;
 
@@ -434,6 +434,8 @@ BEGIN
         pc_out => pc_ALU1_EW,
         result => value_ALU1_EW
     );
+
+    output_proc <= value_ALU1_EW & value_ALU2_EW;
 
     alucongen2 : ALUPipeControlGenerator PORT MAP(
         control_in => control_ALU2_RSACG,
