@@ -163,30 +163,30 @@ begin
                 data_tag_out_3 <= '1';
 
             else
-                if (arf_valid(to_integer(unsigned(source_select_3))) = '1') then
-                    data_out_sig_3 <= arf_data(to_integer(unsigned(source_select_3)));
-                    data_tag_out_3 <= '1';
+                if (source_select_3 = dest_select_1 and wr1 = '1') then
+                    data_out_sig_3 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                    data_tag_out_3 <= '0';
 
                 else
-                    if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_3))))))) = '1' then
-                        data_out_sig_3 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_3))))));
+                    if (arf_valid(to_integer(unsigned(source_select_3))) = '1') then
+                        data_out_sig_3 <= arf_data(to_integer(unsigned(source_select_3)));
                         data_tag_out_3 <= '1';
 
                     else
-                        --sign extension--
-                        if (source_select_3 = dest_select_1 and wr1 = '1') then
-                            data_out_sig_3 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                        if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_3))))))) = '1' then
+                            data_out_sig_3 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_3))))));
+                            data_tag_out_3 <= '1';
+
                         else
                             data_out_sig_3 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_3)))), 16));
-                        end if;
-                        
-                        data_tag_out_3 <= '0';
+                            data_tag_out_3 <= '0';
 
+                        end if;
                     end if;
                 end if;
             end if;
-    end process source_read_3;
-  
+        end process source_read_3;
+
     source_read_4: process(clr, source_select_4, arf_data, rrf_data, arf_valid, rrf_valid, arf_tag, dest_select_1, wr1, tag_1)
         begin
             if (clr = '1') then
@@ -194,30 +194,30 @@ begin
                 data_tag_out_4 <= '1';
 
             else
-                if (arf_valid(to_integer(unsigned(source_select_4))) = '1') then
-                    data_out_sig_4 <= arf_data(to_integer(unsigned(source_select_4)));
-                    data_tag_out_4 <= '1';
+                if (source_select_4 = dest_select_1 and wr1 = '1') then
+                    data_out_sig_4 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                    data_tag_out_4 <= '0';
 
                 else
-                    if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_4))))))) = '1' then
-                        data_out_sig_4 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_4))))));
+                    if (arf_valid(to_integer(unsigned(source_select_4))) = '1') then
+                        data_out_sig_4 <= arf_data(to_integer(unsigned(source_select_4)));
                         data_tag_out_4 <= '1';
 
                     else
-                        --sign extension--
-                        if (source_select_4 = dest_select_1 and wr1 = '1') then
-                            data_out_sig_4 <= std_logic_vector(resize(unsigned(tag_1), 16));
+                        if (rrf_valid(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_4))))))) = '1' then
+                            data_out_sig_4 <= rrf_data(to_integer(unsigned(arf_tag(to_integer(unsigned(source_select_4))))));
+                            data_tag_out_4 <= '1';
+
                         else
                             data_out_sig_4 <= std_logic_vector(resize(unsigned(arf_tag(to_integer(unsigned(source_select_4)))), 16));
-                        end if;
-                        
-                        data_tag_out_4 <= '0';
+                            data_tag_out_4 <= '0';
 
+                        end if;
                     end if;
                 end if;
             end if;
-    end process source_read_4;
-
+        end process source_read_4;
+  
     get_rrf_busy_process: process(rrf_busy)
     begin
         for i in 0 to (integer'(2)**8)-1 loop

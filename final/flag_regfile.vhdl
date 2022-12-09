@@ -123,29 +123,29 @@ begin
                 data_tag_out_2 <= '1';
                 
             else
-                if (arf_valid = '1') then
-                    data_out_sig_2 <= std_logic_vector(resize(unsigned(arf_data), 8));
-                    data_tag_out_2 <= '1';
-
+                if (wr1 = '1') then
+                    data_out_sig_2 <= tag_1;
+                    data_tag_out_2 <= '0';
+                
                 else
-                    if (rrf_valid(to_integer(unsigned(arf_tag)))) = '1' then
-                        data_out_sig_2 <= std_logic_vector(resize(unsigned(rrf_data(to_integer(unsigned(arf_tag)))), 8));
+                    if (arf_valid = '1') then
+                        data_out_sig_2 <= std_logic_vector(resize(unsigned(arf_data), 8));
                         data_tag_out_2 <= '1';
 
                     else
-                        --sign extension--
-                        if (wr1 = '1') then
-                            data_out_sig_2 <= tag_1;
+                        if (rrf_valid(to_integer(unsigned(arf_tag)))) = '1' then
+                            data_out_sig_2 <= std_logic_vector(resize(unsigned(rrf_data(to_integer(unsigned(arf_tag)))), 8));
+                            data_tag_out_2 <= '1';
+
                         else
                             data_out_sig_2 <= arf_tag;
-                        end if;
-                        
-                        data_tag_out_2 <= '0';
+                            data_tag_out_2 <= '0';
 
+                        end if;
                     end if;
                 end if;
             end if;
-    end process source_read_2;
+        end process source_read_2;
 
     get_rrf_busy_process: process(rrf_busy)
     begin
