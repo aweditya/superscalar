@@ -5,7 +5,7 @@ USE ieee.numeric_std.ALL;
 ENTITY datapath IS
     PORT (
         reset, clk : IN STD_LOGIC;
-        output_proc : STD_LOGIC_VECTOR(63 DOWNTO 0)
+        output_proc : OUT STD_LOGIC_VECTOR(63 DOWNTO 0)
     );
 END ENTITY;
 
