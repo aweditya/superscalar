@@ -32,7 +32,6 @@ end rob;
 
 architecture behavioural of rob is
     -- defining the types required for different-sized columns
-    type rob_type_1 is array(size - 1 downto 0) of std_logic;
     type rob_type_3 is array(size - 1 downto 0) of std_logic_vector(2 downto 0);
     type rob_type_8 is array(size - 1 downto 0) of std_logic_vector(7 downto 0);
     type rob_type_16 is array(size - 1 downto 0) of std_logic_vector(15 downto 0);
@@ -44,26 +43,26 @@ architecture behavioural of rob is
     signal rob_dest: rob_type_3:= (others => (others => '0'));
     signal rob_rr1: rob_type_8:= (others => (others => '0'));
 
-    signal rob_c: rob_type_1:= (others => '0');
+    signal rob_c: std_logic_vector(size - 1 downto 0) := (others => '0');
     signal rob_rr2: rob_type_8:= (others => (others => '0'));
 
-    signal rob_z: rob_type_1:= (others => '0');
+    signal rob_z: std_logic_vector(size - 1 downto 0) := (others => '0');
     signal rob_rr3: rob_type_8:= (others => (others => '0'));
 
-    signal rob_finished: rob_type_1:= (others => '0');
-    signal rob_completed: rob_type_1:= (others => '0');
+    signal rob_finished: std_logic_vector(size - 1 downto 0) := (others => '0');
+    signal rob_completed: std_logic_vector(size - 1 downto 0) := (others => '0');
 
     -- defining the indexes for read/write, count and the full/empty bits
-    signal wr_index: integer range 0 to size - 1 := 0;
-    signal rd_index: integer range 0 to size - 1 := 0;
-    signal count: integer range 0 to size := 0;
+    signal rd_index, wr_index: integer range 0 to size - 1 := 0;
     signal empty: std_logic := '1';
     signal full: std_logic := '0';
+    signal length: integer := 0;
 
 begin
-    rob_operation: process(clr, clk, count, rob_pc, wr_inst1, wr_inst2, rd, full, empty, pc_inst1, pc_inst2, dest_inst1, dest_inst2, rr1_inst1, 
-    rr1_inst2, rr2_inst1, rr2_inst2, rr3_inst1, rr3_inst2, wr_ALU1, wr_ALU2, pc_ALU1, pc_ALU2, value_ALU1, value_ALU2, c_ALU1, c_ALU2, 
-    z_ALU1, z_ALU2, rob_rr1, rob_rr2, rob_rr3) 
+    rob_operation: process(clr, clk) 
+        variable count: integer;
+        variable head, tail: integer;
+        
     begin
         if (clr = '1') then
             -- clear data and indices when reset is set
@@ -79,89 +78,74 @@ begin
             rob_completed <= (others => '0');
             wr_index <= 0;
             rd_index <= 0;
-            count <= 0;
             empty <= '1';
             full <= '0';
 
-        else
-            -- Check empty and full
-            if (count = 0) then
-                empty <= '1';
-            else
-                empty <= '0';
-            end if;
+            count := 0;
+            head := 0;
+            tail := 0;
 
-            if (count = size) then
-                full <= '1';
-            else
-                full <= '0';
-            end if;
-            
+        else
             -- FIFO logic and adding newly decoded instructions to the ROB
             if (rising_edge(clk)) then
-                -- Updating count (number of instructions in the ROB)
-                if (wr_inst1 = '1' and wr_inst2 = '1' and rd = '1') then
-                    count <= count + 1;
-                elsif (wr_inst1 = '1' and wr_inst2 = '1' and rd = '0') then
-                    count <= count + 2;
-                elsif (wr_inst1 = '1' and wr_inst2 = '0' and rd = '0') then
-                    count <= count + 1;
-                elsif (wr_inst1 = '0' and wr_inst2 = '1' and rd = '0') then
-                    count <= count + 1;
-                elsif (wr_inst1 = '0' and wr_inst2 = '0' and rd = '1') then
-                    count <= count - 1;
-                end if;
-
-                -- wr_index for the 1st instruction
-                if (wr_inst1 = '1' and full = '0') then
-                    if wr_index = size - 1 then
-                        wr_index <= 0;
-                    else
-                        wr_index <= wr_index + 1;
-                    end if;
-                end if;
-
                 -- Writes 1st instruction to the empty entry pointed to by wr_index
                 if (wr_inst1 = '1') then
-                    rob_pc(wr_index) <= pc_inst1;
-                    rob_dest(wr_index) <= dest_inst1;
-                    rob_rr1(wr_index) <= rr1_inst1;
-                    rob_rr2(wr_index) <= rr2_inst1;
-                    rob_rr3(wr_index) <= rr3_inst1;
-                    rob_finished(wr_index) <= '0';
-                    rob_completed(wr_index) <= '0';
+                    rob_pc(tail) <= pc_inst1;
+                    rob_dest(tail) <= dest_inst1;
+                    rob_rr1(tail) <= rr1_inst1;
+                    rob_rr2(tail) <= rr2_inst1;
+                    rob_rr3(tail) <= rr3_inst1;
+                    rob_finished(tail) <= '0';
+                    rob_completed(tail) <= '0';
+
+                    count := count + 1;
                 end if;
 
-                -- wr_index for the 2nd instruction
-                if (wr_inst2 = '1' and full = '0') then
-                    if wr_index = size - 1 then
-                        wr_index <= 0;
+                -- Write index for the 1st instruction
+                if (wr_inst1 = '1' and not (count = size)) then
+                    if tail = size - 1 then
+                        tail := 0;
                     else
-                        wr_index <= wr_index + 1;
+                        tail := tail + 1;
                     end if;
                 end if;
 
                 -- Writes 2nd instruction to the empty entry pointed to by wr_index
                 if (wr_inst2 = '1') then
-                    rob_pc(wr_index) <= pc_inst2;
-                    rob_dest(wr_index) <= dest_inst2;
-                    rob_rr1(wr_index) <= rr1_inst2;
-                    rob_rr2(wr_index) <= rr2_inst2;
-                    rob_rr3(wr_index) <= rr3_inst2;
-                    rob_finished(wr_index) <= '0';
-                    rob_completed(wr_index) <= '0';
+                    rob_pc(tail) <= pc_inst2;
+                    rob_dest(tail) <= dest_inst2;
+                    rob_rr1(tail) <= rr1_inst2;
+                    rob_rr2(tail) <= rr2_inst2;
+                    rob_rr3(tail) <= rr3_inst2;
+                    rob_finished(tail) <= '0';
+                    rob_completed(tail) <= '0';
+
+                    count := count + 1;
                 end if;
 
-                -- Keep track of the rd_index      
-                if (rd = '1' and empty = '0') then
-                    if rd_index = size - 1 then
-                        rd_index <= 0;
+                -- Write index for the 2nd instruction
+                if (wr_inst2 = '1' and not (count = size)) then
+                    if tail = size - 1 then
+                        tail := 0;
                     else
-                        rd_index <= rd_index + 1;
+                        tail := tail + 1;
                     end if;
-                    rob_completed(rd_index) <= '1';
                 end if;
 
+                -- Keep track of the rd_index     
+                if (rob_finished(i) = '1') then
+                    if (rd = '1' and not (count = 0)) then
+                        if head = size - 1 then
+                            head := 0;
+                        else
+                            head := head + 1;
+                        end if;
+    
+                        rob_completed(head) <= '1';
+                        count := count - 1;
+                    end if;
+                end if;
+                
                 -- Writing output values from the execution pipelines
                 -- Write executed data from ALU1 into corresponding ROB entry
                 if (wr_ALU1 = '1') then
@@ -209,11 +193,27 @@ begin
                     rr3_ALU2 <= (others => '0');
                 end if;
             end if;
+
+            rd_index <= head;
+            wr_index <= tail;
+            length <= count;
+
+            -- Check empty, full
+            if (count = 0) then
+                empty <= '1';
+            else
+                empty <= '0';
+            end if;
+
+            if (count = size) then
+                full <= '1';
+            else
+                full <= '0';
+            end if;
         end if;
     end process rob_operation;
-    
+
     -- Value from entry pointed to by rd_index
     dest_out <= rob_dest(rd_index);
-    completed <= rob_completed(rd_index);      
-
-end behavioural;
+    completed <= rob_completed(rd_index);
+end architecture behavioural;
