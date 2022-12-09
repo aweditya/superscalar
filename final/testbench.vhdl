@@ -29,11 +29,90 @@ begin
         clock <= '0';
         wait for 100 ns;
 
+<<<<<<< HEAD
         clear <= '1';
+=======
+        clear <= '0';
         clock <= '1';
         wait for 100 ns;
 
         clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+        
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+>>>>>>> origin/finale_finale
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+<<<<<<< HEAD
+=======
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+>>>>>>> origin/finale_finale
         clock <= '0';
         wait for 100 ns;
 
@@ -116,14 +195,12 @@ begin
         clear <= '0';
         clock <= '0';
         wait for 100 ns;
+<<<<<<< HEAD
+=======
 
-        clear <= '0';
-        clock <= '1';
-        wait for 100 ns;
-
-        clear <= '0';
-        clock <= '0';
-        wait for 100 ns;
+        
+        wait;
+>>>>>>> origin/finale_finale
         
         report "Testing completed";
         wait;
