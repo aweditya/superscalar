@@ -8,12 +8,12 @@ architecture behavioural of tb is
     component datapath is 
         port(
             reset, clk : IN STD_LOGIC;
-            output_proc : OUT STD_LOGIC_VECTOR(63 DOWNTO 0)
+            output_proc : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
         );
     end component;
 
     signal clock, clear: std_logic := '1';
-    signal out_proc: std_logic_vector(63 downto 0);
+    signal out_proc: std_logic_vector(31 downto 0);
 
 begin
     proc: datapath
