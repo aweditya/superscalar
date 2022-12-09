@@ -156,19 +156,9 @@ begin
                             rob_c(i) <= c_ALU1;
                             rob_z(i) <= z_ALU1;
                             rob_finished(i) <= '1';
-
-                            -- Read rename registers for ALU2 from corresponding ROB entry
-                            rr1_ALU1 <= rob_rr1(i);
-                            rr2_ALU1 <= rob_rr2(i);
-                            rr3_ALU1 <= rob_rr3(i);
                             exit;
                         end if;
                     end loop;
-
-                else
-                    rr1_ALU1 <= (others => '0');
-                    rr2_ALU1 <= (others => '0');
-                    rr3_ALU1 <= (others => '0');
                 end if;
 
                 -- Write executed data from ALU2 into corresponding ROB entry
@@ -179,19 +169,9 @@ begin
                             rob_c(i) <= c_ALU2;
                             rob_z(i) <= z_ALU2;
                             rob_finished(i) <= '1';
-
-                            -- Read rename registers for ALU2 from corresponding ROB entry
-                            rr1_ALU2 <= rob_rr1(i);
-                            rr2_ALU2 <= rob_rr2(i);
-                            rr3_ALU2 <= rob_rr3(i);
                             exit;
                         end if;
                     end loop;
-
-                else
-                    rr1_ALU2 <= (others => '0');
-                    rr2_ALU2 <= (others => '0');
-                    rr3_ALU2 <= (others => '0');
                 end if;
             end if;
 
@@ -213,6 +193,42 @@ begin
             end if;
         end if;
     end process rob_operation;
+
+    read_rr: process(rob_pc, rob_rr1, rob_rr2, rob_rr3, wr_ALU1, wr_ALU2, pc_ALU1, pc_ALU2)
+    begin
+        if (wr_ALU1 = '1') then
+            for i in 0 to size - 1 loop
+                if (rob_pc(i) = pc_ALU1) then
+                    -- Read rename registers for ALU1 from corresponding ROB entry
+                    rr1_ALU1 <= rob_rr1(i);
+                    rr2_ALU1 <= rob_rr2(i);
+                    rr3_ALU1 <= rob_rr3(i);
+                    exit;
+                end if;
+            end loop;
+
+        else
+            rr1_ALU1 <= (others => '0');
+            rr2_ALU1 <= (others => '0');
+            rr3_ALU1 <= (others => '0');
+        end if;
+
+        if (wr_ALU2 = '1') then
+            for i in 0 to size-1 loop
+                if (rob_pc(i) = pc_ALU2) then
+                    -- Read rename registers for ALU2 from corresponding ROB entry
+                    rr1_ALU2 <= rob_rr1(i);
+                    rr2_ALU2 <= rob_rr2(i);
+                    rr3_ALU2 <= rob_rr3(i);
+                    exit;
+                end if;
+            end loop;
+        else
+            rr1_ALU2 <= (others => '0');
+            rr2_ALU2 <= (others => '0');
+            rr3_ALU2 <= (others => '0');
+        end if;
+    end process read_rr;
 
     -- Value from entry pointed to by rd_index
     dest_out <= rob_dest(rd_index);
