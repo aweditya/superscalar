@@ -515,7 +515,7 @@ BEGIN
        -- adv_rs =>
        -- adv_wb =>
        rs_full => CT_rs_full, --connect to rs_almost_full, rs_full of id stage
-       rs_almost_full => CTs_rs_almost_full,
+       rs_almost_full => CT_rs_almost_full,
        flush_out => CT_flush_out, -- In case of a branch misprediction, we need to flush the pipeline. This will route to all of the pipelines and flush them.
        stall_out => CT_stall_out,
        adv_rob => open
