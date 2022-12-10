@@ -135,14 +135,15 @@ begin
                 -- Keep track of the rd_index     
                 if (rob_finished(head) = '1') then
                     if (rd = '1' and not (count = 0)) then
+                        rob_finished(head) <= '0';
+                        rob_completed(head) <= '1';
+
                         if head = size - 1 then
                             head := 0;
                         else
                             head := head + 1;
                         end if;
     
-                        rob_finished(head) <= '0';
-                        rob_completed(head) <= '1';
                         count := count - 1;
                     end if;
                 end if;
