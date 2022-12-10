@@ -31,7 +31,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i[1]))[2:].zfill(6)
         if (opcode=="ndu" or opcode=="ndc" or opcode=="ndz"):
             binary+="0010"
             terms=operands.split(",")
@@ -43,7 +43,7 @@ with open("code.asm", 'r') as codedata:
                 binary+="00"
             elif (opcode=="ndc"):
                 binary+="10"
-            elif (opcode=="ndzz"):
+            elif (opcode=="ndz"):
                 binary+="01"
         if (opcode=="lhi"):
             binary+="0000"
@@ -52,7 +52,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i[1]))[2:].zfill(9)
         if (opcode=="lw"):
             binary+="0111"
             terms=operands.split(",")
@@ -60,7 +60,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i[1]))[2:].zfill(6)
         if(opcode=="sw"):
             binary+="0101"
             terms=operands.split(",")
@@ -68,7 +68,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i[1]))[2:].zfill(6)
         if(opcode=="lm"):
             binary+="1100"
             terms=operands.split(",")
@@ -76,7 +76,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i[1]))[2:].zfill(9)
         if(opcode=="sm"):
             binary+="1101"
             terms=operands.split(",")
@@ -84,7 +84,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i))[2:].zfill(9)
         if(opcode=="beq"):
             binary+="1000"
             terms=operands.split(",")
@@ -92,7 +92,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i))[2:].zfill(6)
         if(opcode=="jal"):
             binary+="1001"
             terms=operands.split(",")
@@ -100,7 +100,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i
+                    binary+=bin(int(i))[2:].zfill(9)
         if(opcode=="jlr"):
             binary+="1010"
             terms=operands.split(",")
@@ -115,7 +115,7 @@ with open("code.asm", 'r') as codedata:
                 if i[0]=="r":
                     binary+=bin(int(i[1]))[2:].zfill(3)
                 else:
-                    binary+=i    
+                    binary+=bin(int(i))[2:].zfill(9)    
         
         
                 
