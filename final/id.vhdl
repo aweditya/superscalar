@@ -11,16 +11,19 @@ entity IDStage is
         IFID_inc_Op, IFID_PC_Op: in std_logic_vector(15 downto 0);
         IFID_IMem_Op: in std_logic_vector(31 downto 0);
         
+        -- ALU execution pipeline fowarding
         finish_alu_pipe1, finish_alu_pipe2: in std_logic;
-
         data_rr_alu_1, data_rr_alu_2: in std_logic_vector(7 downto 0);
         data_result_alu_1, data_result_alu_2: in std_logic_vector(15 downto 0);
-
         carry_rr_alu_1, carry_rr_alu_2: in std_logic_vector(7 downto 0);
         carry_result_alu_1, carry_result_alu_2: in std_logic_vector(0 downto 0);
-
         zero_rr_alu_1, zero_rr_alu_2: in std_logic_vector(7 downto 0);
         zero_result_alu_1, zero_result_alu_2: in std_logic_vector(0 downto 0);
+
+        -- LHI execution pipeline forwarding
+        finish_lhi: in std_logic;
+        data_rr_lhi: in std_logic_vector(7 downto 0);
+        data_result_lhi: in std_logic_vector(15 downto 0);
 
         inst_complete_exec: in std_logic;
         inst_complete_exec_dest: in std_logic_vector(2 downto 0);
@@ -52,14 +55,22 @@ architecture behavioural of IDStage is
             clk, clr: in std_logic;
             source_select_1, source_select_2, source_select_3, source_select_4: in std_logic_vector(2 downto 0);
 
+            -- Newly decoded instructions
+            wr1, wr2: in std_logic;
             dest_select_1, dest_select_2: in std_logic_vector(2 downto 0);
             tag_1, tag_2: in std_logic_vector(7 downto 0);
 
-            wr1, wr2: in std_logic;
+            -- ALU execution pipeline forwarding for data
             finish_alu_1, finish_alu_2: in std_logic;
             rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
             data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
 
+            -- LHI execution pipeline forwarding for data
+            finish_lhi: in std_logic;
+            rr_lhi: in std_logic_vector(7 downto 0);
+            data_lhi: in std_logic_vector(15 downto 0);
+
+            -- Instruction retirement
             complete: in std_logic;
             inst_complete_dest: in std_logic_vector(2 downto 0);
 
@@ -315,13 +326,17 @@ begin
             dest_select_2 => dest_addr_inst2,
             tag_1 => data_rr_tag_inst1, 
             tag_2 => data_rr_tag_inst2,
-            
+
             finish_alu_1 => finish_alu_pipe1, 
             finish_alu_2 => finish_alu_pipe2,
             rr_alu_1 => data_rr_alu_1, 
             rr_alu_2 => data_rr_alu_2,
             data_alu_1 => data_result_alu_1, 
             data_alu_2 => data_result_alu_2,
+
+            finish_lhi => finish_lhi,
+            rr_lhi => data_rr_lhi,
+            data_lhi => data_result_lhi,
 
             complete => inst_complete_exec,
             inst_complete_dest => inst_complete_exec_dest,
