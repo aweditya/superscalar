@@ -16,7 +16,7 @@ entity rs is
 		control_inst1, control_inst2: in std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: in std_logic_vector(15 downto 0); -- pc values for the two instructions
         opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: in std_logic_vector(15 downto 0); -- operand values for the two instructions
-        imm6_inst1, imm6_inst2: in std_logic_vector(5 downto 0); -- imm6 values for the two instructions
+        imm9_inst1, imm9_inst2: in std_logic_vector(8 downto 0); -- imm6 values for the two instructions
         c_inst1, z_inst1, c_inst2, z_inst2: in std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
         valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: in std_logic; -- valid bits for first instruction
         valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: in std_logic; -- valid bits for second instruction
@@ -41,6 +41,7 @@ architecture behavioural of rs is
     type rs_type_4 is array(size-1 downto 0) of std_logic_vector(3 downto 0);
     type rs_type_6 is array(size-1 downto 0) of std_logic_vector(5 downto 0);
     type rs_type_8 is array(size-1 downto 0) of std_logic_vector(7 downto 0);
+    type rs_type_9 is array(size-1 downto 0) of std_logic_vector(8 downto 0);
     type rs_type_16 is array(size-1 downto 0) of std_logic_vector(15 downto 0);
 
     -- defining the required columns, each with (size) entries
@@ -48,13 +49,12 @@ architecture behavioural of rs is
     signal rs_pc: rs_type_16:= (others => (others => '0'));
     signal rs_opr1: rs_type_16:= (others => (others => '0'));
     signal rs_opr2: rs_type_16:= (others => (others => '0'));
-    signal rs_imm_6: rs_type_6:= (others => (others => '0'));
+    signal rs_imm_9: rs_type_9:= (others => (others => '0'));
     signal rs_c: rs_type_8:= (others => (others => '0'));
     signal rs_z: rs_type_8:= (others => (others => '0'));
     
     signal rs_v1, rs_v2, rs_v3, rs_v4: std_logic_vector(size - 1 downto 0) := (others => '0');
     signal rs_ready, rs_issued: std_logic_vector(size - 1 downto 0) := (others => '0');
-
 
     signal count: integer range 0 to size := 0;
     signal almost_full: std_logic;
@@ -175,7 +175,7 @@ begin
                     rs_v1(to_integer(unsigned(first_free_entry))) <= valid1_inst1;
                     rs_opr2(to_integer(unsigned(first_free_entry))) <= opr2_inst1;
                     rs_v2(to_integer(unsigned(first_free_entry))) <= valid2_inst1;
-                    rs_imm_6(to_integer(unsigned(first_free_entry))) <= imm6_inst1;
+                    rs_imm_9(to_integer(unsigned(first_free_entry))) <= imm9_inst1;
                     rs_c(to_integer(unsigned(first_free_entry))) <= c_inst1;
                     rs_v3(to_integer(unsigned(first_free_entry))) <= valid3_inst1;
                     rs_z(to_integer(unsigned(first_free_entry))) <= z_inst1;
@@ -193,7 +193,7 @@ begin
                     rs_v1(to_integer(unsigned(second_free_entry))) <= valid1_inst2;
                     rs_opr2(to_integer(unsigned(second_free_entry))) <= opr2_inst2;
                     rs_v2(to_integer(unsigned(second_free_entry))) <= valid2_inst2;
-                    rs_imm_6(to_integer(unsigned(second_free_entry))) <= imm6_inst2;
+                    rs_imm_9(to_integer(unsigned(second_free_entry))) <= imm9_inst2;
                     rs_c(to_integer(unsigned(second_free_entry))) <= c_inst2;
                     rs_v3(to_integer(unsigned(second_free_entry))) <= valid3_inst2;
                     rs_z(to_integer(unsigned(second_free_entry))) <= z_inst2;
@@ -254,7 +254,7 @@ begin
                     pc_ALU1 <= rs_pc(to_integer(unsigned(first_ready_inst)));
                     ra_ALU1 <= rs_opr1(to_integer(unsigned(first_ready_inst)));
                     rb_ALU1 <= rs_opr2(to_integer(unsigned(first_ready_inst)));
-                    imm6_ALU1 <= rs_imm_6(to_integer(unsigned(first_ready_inst)));
+                    imm6_ALU1 <= rs_imm_9(to_integer(unsigned(first_ready_inst)))(5 downto 0);
                     c_ALU1_out <= rs_c(to_integer(unsigned(first_ready_inst)))(0);
                     z_ALU1_out <= rs_z(to_integer(unsigned(first_ready_inst)))(0); 
                     control_ALU1 <= rs_control(to_integer(unsigned(first_ready_inst)));
@@ -271,7 +271,7 @@ begin
                     pc_ALU2 <= rs_pc(to_integer(unsigned(second_ready_inst)));
                     ra_ALU2 <= rs_opr1(to_integer(unsigned(second_ready_inst)));
                     rb_ALU2 <= rs_opr2(to_integer(unsigned(second_ready_inst)));
-                    imm6_ALU2 <= rs_imm_6(to_integer(unsigned(second_ready_inst)));
+                    imm6_ALU2 <= rs_imm_9(to_integer(unsigned(second_ready_inst)))(5 downto 0);
                     c_ALU2_out <= rs_c(to_integer(unsigned(second_ready_inst)))(0);
                     z_ALU2_out <= rs_z(to_integer(unsigned(second_ready_inst)))(0);
                     control_ALU2 <= rs_control(to_integer(unsigned(second_ready_inst)));

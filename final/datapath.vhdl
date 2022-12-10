@@ -63,7 +63,7 @@ ARCHITECTURE arch OF datapath IS
             control_inst1, control_inst2 : OUT STD_LOGIC_VECTOR(5 DOWNTO 0); -- control values for the two instructions
             pc_inst1, pc_inst2 : OUT STD_LOGIC_VECTOR(15 DOWNTO 0); -- pc values for the two instructions
             opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2 : OUT STD_LOGIC_VECTOR(15 DOWNTO 0); -- operand values for the two instructions
-            imm6_inst1, imm6_inst2 : OUT STD_LOGIC_VECTOR(5 DOWNTO 0); -- imm6 values for the two instructions
+            imm9_inst1, imm9_inst2 : OUT STD_LOGIC_VECTOR(8 DOWNTO 0); -- imm6 values for the two instructions
             c_inst1, z_inst1, c_inst2, z_inst2 : OUT STD_LOGIC_VECTOR(7 DOWNTO 0); -- carry and zero values for the two instructions
             valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1 : OUT STD_LOGIC; -- valid bits for first instruction
             valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2 : OUT STD_LOGIC; -- valid bits for second instruction
@@ -89,7 +89,7 @@ ARCHITECTURE arch OF datapath IS
             control_inst1, control_inst2 : IN STD_LOGIC_VECTOR(5 DOWNTO 0); -- control values for the two instructions
             pc_inst1, pc_inst2 : IN STD_LOGIC_VECTOR(15 DOWNTO 0); -- pc values for the two instructions
             opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2 : IN STD_LOGIC_VECTOR(15 DOWNTO 0); -- operand values for the two instructions
-            imm6_inst1, imm6_inst2 : IN STD_LOGIC_VECTOR(5 DOWNTO 0); -- imm6 values for the two instructions
+            imm9_inst1, imm9_inst2 : IN STD_LOGIC_VECTOR(8 DOWNTO 0); -- imm6 values for the two instructions
             c_inst1, z_inst1, c_inst2, z_inst2 : IN STD_LOGIC_VECTOR(7 DOWNTO 0); -- carry and zero values for the two instructions
             valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1 : IN STD_LOGIC; -- valid bits for first instruction
             valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2 : IN STD_LOGIC; -- valid bits for second instruction
@@ -204,7 +204,7 @@ ARCHITECTURE arch OF datapath IS
     -- signals from ID to RS --
     SIGNAL opr1_inst1_DR, opr1_inst2_DR : STD_LOGIC_VECTOR(15 DOWNTO 0);
     SIGNAL opr2_inst1_DR, opr2_inst2_DR : STD_LOGIC_VECTOR(15 DOWNTO 0);
-    SIGNAL imm6_inst1_DR, imm6_inst2_DR : STD_LOGIC_VECTOR(5 DOWNTO 0);
+    SIGNAL imm9_inst1_DR, imm9_inst2_DR : STD_LOGIC_VECTOR(8 DOWNTO 0);
     SIGNAL pc_inst1_DR, pc_inst2_DR : STD_LOGIC_VECTOR(15 DOWNTO 0);
     SIGNAL c_inst1_DR, c_inst2_DR, z_inst1_DR, z_inst2_DR : STD_LOGIC_VECTOR(7 DOWNTO 0);
     SIGNAL control_inst1_DR, control_inst2_DR : STD_LOGIC_VECTOR(5 DOWNTO 0);
@@ -312,8 +312,8 @@ BEGIN
         opr2_inst1 => opr2_inst1_DR,
         opr1_inst2 => opr1_inst2_DR,
         opr2_inst2 => opr2_inst2_DR,
-        imm6_inst1 => imm6_inst1_DR,
-        imm6_inst2 => imm6_inst2_DR,
+        imm9_inst1 => imm9_inst1_DR,
+        imm9_inst2 => imm9_inst2_DR,
         pc_inst1 => pc_inst1_DR,
         pc_inst2 => pc_inst2_DR,
         c_inst1 => c_inst1_DR,
@@ -362,8 +362,8 @@ BEGIN
         opr2_inst1 => opr2_inst1_DR,
         opr1_inst2 => opr1_inst2_DR,
         opr2_inst2 => opr2_inst2_DR,
-        imm6_inst1 => imm6_inst1_DR,
-        imm6_inst2 => imm6_inst2_DR,
+        imm9_inst1 => imm9_inst1_DR,
+        imm9_inst2 => imm9_inst2_DR,
         c_inst1 => c_inst1_DR,
         c_inst2 => c_inst2_DR,
         z_inst1 => z_inst1_DR,

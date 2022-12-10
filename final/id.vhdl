@@ -35,7 +35,7 @@ entity IDStage is
         control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: out std_logic_vector(15 downto 0); -- pc values for the two instructions
         opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: out std_logic_vector(15 downto 0); -- operand values for the two instructions
-        imm6_inst1, imm6_inst2: out std_logic_vector(5 downto 0); -- imm6 values for the two instructions
+        imm9_inst1, imm9_inst2: out std_logic_vector(8 downto 0); -- imm9 values for the two instructions
         c_inst1, z_inst1, c_inst2, z_inst2: out std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
         valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: out std_logic; -- valid bits for first instruction
         valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic; -- valid bits for second instruction
@@ -244,8 +244,8 @@ begin
     --
 
     -- Immediate data field
-    imm6_inst1 <= IFID_IMem_Op(21 downto 16);
-    imm6_inst2 <= IFID_IMem_Op(5 downto 0);
+    imm9_inst1 <= IFID_IMem_Op(24 downto 16);
+    imm9_inst2 <= IFID_IMem_Op(8 downto 0);
     -- 
 
     inst1_operands: OperandExtractor
