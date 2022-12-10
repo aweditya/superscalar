@@ -10,6 +10,7 @@ entity rs is
         -- INPUTS 
 		clk: in std_logic; -- input clock
         clr: in std_logic; -- clear bit
+
         wr_inst1, wr_inst2: in std_logic; -- write bits for newly decoded instructions 
 		control_inst1, control_inst2: in std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: in std_logic_vector(15 downto 0); -- pc values for the two instructions
@@ -236,7 +237,7 @@ begin
             -- LHI signal initialisation
             pc_LHI <= (others => '0');
             imm9_LHI <= (others => '0');
-            finished_LHI_out <= '0';
+            finished_LHI_sig <= '0';
             
             instruction_count := 0;
 
@@ -435,5 +436,6 @@ begin
 
     finished_ALU1_out <= finished_ALU1_sig;
     finished_ALU2_out <= finished_ALU2_sig;
+    finished_LHI_out <= finished_LHI_sig;
     
 end behavioural;
