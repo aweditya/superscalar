@@ -50,13 +50,15 @@ architecture behavioural of rob is
     signal rob_rr3: rob_type_8:= (others => (others => '0'));
 
     signal rob_finished: std_logic_vector(size - 1 downto 0) := (others => '0');
-    signal rob_completed: std_logic_vector(size - 1 downto 0) := (others => '0');
 
     -- defining the indexes for read/write, count and the full/empty bits
     signal rd_index, wr_index: integer range 0 to size - 1 := 0;
     signal empty: std_logic := '1';
     signal full: std_logic := '0';
     signal length: integer := 0;
+
+    signal retire: std_logic := '0';
+    signal retire_dest: std_logic_vector(2 downto 0) := (others => '0');
 
 begin
     rob_operation: process(clr, clk) 
@@ -75,9 +77,9 @@ begin
             rob_z <= (others => '0');
             rob_rr3 <= (others => (others => '0'));
             rob_finished <= (others => '0');
-            rob_completed <= (others => '0');
             wr_index <= 0;
             rd_index <= 0;
+            retire <= '0';
             empty <= '1';
             full <= '0';
 
@@ -96,7 +98,6 @@ begin
                     rob_rr2(tail) <= rr2_inst1;
                     rob_rr3(tail) <= rr3_inst1;
                     rob_finished(tail) <= '0';
-                    rob_completed(tail) <= '0';
 
                     count := count + 1;
                 end if;
@@ -118,7 +119,6 @@ begin
                     rob_rr2(tail) <= rr2_inst2;
                     rob_rr3(tail) <= rr3_inst2;
                     rob_finished(tail) <= '0';
-                    rob_completed(tail) <= '0';
 
                     count := count + 1;
                 end if;
@@ -136,7 +136,9 @@ begin
                 if (rob_finished(head) = '1') then
                     if (rd = '1' and not (count = 0)) then
                         rob_finished(head) <= '0';
-                        rob_completed(head) <= '1';
+
+                        retire_dest <= rob_dest(head);
+                        retire <= '1';
 
                         if head = size - 1 then
                             head := 0;
@@ -146,6 +148,9 @@ begin
     
                         count := count - 1;
                     end if;
+                else
+                    retire_dest <= (others => '0');
+                    retire <= '0';
                 end if;
                 
                 -- Writing output values from the execution pipelines
@@ -214,6 +219,9 @@ begin
             rr3_ALU1 <= (others => '0');
         end if;
 
+        completed <= retire;
+        dest_out <= retire_dest;
+
         if (wr_ALU2 = '1') then
             for i in 0 to size-1 loop
                 if (rob_pc(i) = pc_ALU2) then
@@ -230,8 +238,4 @@ begin
             rr3_ALU2 <= (others => '0');
         end if;
     end process read_rr;
-
-    -- Value from entry pointed to by rd_index
-    dest_out <= rob_dest(rd_index);
-    completed <= rob_completed(rd_index);
 end architecture behavioural;
