@@ -14,8 +14,8 @@ begin
         variable opcode: std_logic_vector(3 downto 0);
     begin
         opcode := instruction(15 downto 12);
-        if (opcode = "0001" or opcode = "0000" or opcode = "0010") then
-            -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ
+        if (opcode = "0001" or opcode = "0000" or opcode = "0010" or opcode = "0011") then
+            -- ADD, ADC, ADZ, ADL, ADI, NDU, NDC, NDZ, LHI
             dest_write <= '1';
         else
             -- Default (there are more cases for other instructions)
