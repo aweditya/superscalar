@@ -124,6 +124,78 @@ begin
         clear <= '0';
         clock <= '0';
         wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '1';
+        wait for 100 ns;
+
+        clear <= '0';
+        clock <= '0';
+        wait for 100 ns;
         
         report "Testing completed";
         wait;
