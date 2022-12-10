@@ -9,22 +9,38 @@ entity rob is
         -- INPUTS -------------------------------------------------------------------------------------------
         clk: in std_logic; -- input clock
         clr: in std_logic; -- clear bit
-        wr_inst1, wr_inst2: in std_logic; -- write bits for newly decoded instructions 
-        wr_ALU1, wr_ALU2: in std_logic; -- write bits for newly executed instructions
         rd: in std_logic; -- read bit for finished instructions
-		
+
+        -- Logic for newly decoded instructions
+        wr_inst1, wr_inst2: in std_logic; -- write bits for newly decoded instructions 
         pc_inst1, pc_inst2: in std_logic_vector(15 downto 0); -- PC values for writing the newly decoded instructions
-        pc_ALU1, pc_ALU2: in std_logic_vector(15 downto 0); -- PC values for identifying the newly executed instructions
-        value_ALU1, value_ALU2: in std_logic_vector(15 downto 0); -- final output values obtained from the execution pipelines
         dest_inst1, dest_inst2: in std_logic_vector(2 downto 0); -- destination registers for newly decoded instructions
         rr1_inst1, rr1_inst2: in std_logic_vector(7 downto 0); -- RR1 for newly decoded instructions
-        c_ALU1, z_ALU1, c_ALU2, z_ALU2: in std_logic; -- c and z values obtained from the execution pipelines
         rr2_inst1, rr2_inst2: in std_logic_vector(7 downto 0); -- RR2 for newly decoded instructions
         rr3_inst1, rr3_inst2: in std_logic_vector(7 downto 0); -- RR3 for newly decoded instructions
 
+        -- Logic for newly executed ALU instructions
+        wr_ALU1, wr_ALU2: in std_logic; -- write bits for newly executed ALU instructions
+        pc_ALU1, pc_ALU2: in std_logic_vector(15 downto 0); -- PC values for identifying the newly executed ALU instructions
+        value_ALU1, value_ALU2: in std_logic_vector(15 downto 0); -- final output values obtained from the ALU execution pipelines
+        c_ALU1, c_ALU2: in std_logic; -- c values obtained from the ALU execution pipelines
+        z_ALU1, z_ALU2: in std_logic; -- z values obtained from the ALU execution pipelines
+
+        -- Logic for newly executed LHI instructions
+        wr_LHI: in std_logic; -- write bits for newly executed LHI instructions
+        pc_LHI: in std_logic_vector(15 downto 0); -- PC values for identifying the newly executed LHI instructions
+        value_LHI: in std_logic_vector(15 downto 0); -- final output values obtained from the LHI execution pipeline
+
         -- OUTPUTS -------------------------------------------------------------------------------------------
-        rr1_ALU1, rr1_ALU2: out std_logic_vector(7 downto 0); -- RR1 values for both ALU pipelines to which value is written to
-        rr2_ALU1, rr2_ALU2, rr3_ALU1, rr3_ALU2: out std_logic_vector(7 downto 0); -- RR2, RR3 values for both ALU pipelines to which flags are written to
+        -- ALU execution pipeline
+        rr1_ALU1, rr1_ALU2: out std_logic_vector(7 downto 0); -- RR1 values for both ALU pipelines to which value is written
+        rr2_ALU1, rr2_ALU2: out std_logic_vector(7 downto 0); -- RR2 values for both ALU pipelines to which carry flag is written
+        rr3_ALU1, rr3_ALU2: out std_logic_vector(7 downto 0); -- RR3 values for both ALU pipelines to which zero flag is written
+
+        -- LHI execution pipeline
+        rr_LHI: out std_logic_vector(7 downto 0); -- RR value for LHI pipeline to which value is written
+
+        -- Instruction retirement
         dest_out: out std_logic_vector(2 downto 0); -- destination register for final output
         completed: out std_logic -- bit for when an instruction is completed
 	);
@@ -179,6 +195,17 @@ begin
                         end if;
                     end loop;
                 end if;
+
+                -- Write executed data from LHI into corresponding ROB entry
+                if (wr_LHI = '1') then
+                    for i in 0 to size-1 loop
+                        if (rob_pc(i) = pc_LHI) then
+                            rob_value(i) <= value_LHI;
+                            rob_finished(i) <= '1';
+                            exit;
+                        end if;
+                    end loop;
+                end if;
             end if;
 
             rd_index <= head;
@@ -200,7 +227,10 @@ begin
         end if;
     end process rob_operation;
 
-    read_rr: process(rob_pc, rob_rr1, rob_rr2, rob_rr3, wr_ALU1, wr_ALU2, pc_ALU1, pc_ALU2)
+    completed <= retire;
+    dest_out <= retire_dest;
+
+    read_rr_alu1: process(rob_pc, rob_rr1, rob_rr2, rob_rr3, wr_AlU1, pc_ALU1)
     begin
         if (wr_ALU1 = '1') then
             for i in 0 to size - 1 loop
@@ -218,10 +248,10 @@ begin
             rr2_ALU1 <= (others => '0');
             rr3_ALU1 <= (others => '0');
         end if;
+    end process read_rr_alu1;
 
-        completed <= retire;
-        dest_out <= retire_dest;
-
+    read_rr_alu2: process(rob_pc, rob_rr1, rob_rr2, rob_rr3, wr_ALU2, pc_ALU2)
+    begin
         if (wr_ALU2 = '1') then
             for i in 0 to size-1 loop
                 if (rob_pc(i) = pc_ALU2) then
@@ -237,5 +267,19 @@ begin
             rr2_ALU2 <= (others => '0');
             rr3_ALU2 <= (others => '0');
         end if;
-    end process read_rr;
+    end process read_rr_alu2;
+
+    read_rr_lhi: process(rob_pc, rob_rr1, wr_LHI, pc_LHI)
+    begin
+        if (wr_LHI = '1') then
+            for i in 0 to size-1 loop
+                if (rob_pc(i) = pc_LHI) then
+                -- Read rename register for LHI from corresponding ROB entry
+                rr_LHI <= rob_rr1(i);
+                end if;
+            end loop;
+        else
+            rr_LHI <= (others => '0');
+        end if;
+    end process read_rr_lhi;
 end architecture behavioural;
