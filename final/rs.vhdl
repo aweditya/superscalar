@@ -55,6 +55,7 @@ architecture behavioural of rs is
     signal rs_v1, rs_v2, rs_v3, rs_v4: std_logic_vector(size - 1 downto 0) := (others => '0');
     signal rs_ready, rs_issued: std_logic_vector(size - 1 downto 0) := (others => '0');
 
+
     signal count: integer range 0 to size := 0;
     signal almost_full: std_logic;
     signal full: std_logic;
@@ -127,12 +128,9 @@ begin
             valid_second => issue_valid_second_sig
         );
 
-    rs_operation: process(clr, clk, wr_inst1, wr_inst2, rs_ready, rs_issued, rs_control, control_inst1, control_inst2, 
-    pc_inst1, pc_inst2, opr1_inst1, opr1_inst2, opr2_inst1, opr2_inst2, valid1_inst1, valid1_inst2, valid2_inst1, 
-    valid2_inst2, imm6_inst1, imm6_inst2, c_inst1, c_inst2, valid3_inst1, valid3_inst2, z_inst1, z_inst2, valid4_inst1, 
-    valid4_inst2, rs_v1, rs_opr1, rs_v2, rs_opr2, rr1_ALU1, rr1_ALU2, data_ALU1, data_ALU2, rs_v3, rs_c, rr2_ALU1, 
-    rr2_ALU2, c_ALU1_in, c_ALU2_in, rs_v4, rs_z, rr3_ALU1, rr3_ALU2, z_ALU1_in, z_ALU2_in, finished_ALU1, finished_ALU2,
-    rd_ALU1, rd_ALU2, rs_pc, rs_imm_6, first_free_entry, second_free_entry, first_ready_inst, second_ready_inst)
+    rs_operation: process(clr, clk)
+        variable instruction_count: integer range 0 to size := 0;
+
     begin
         if (clr = '1') then
             rs_control <= (others => (others => '0'));
@@ -146,7 +144,6 @@ begin
             rs_z <= (others => (others => '0'));
             rs_v4 <= (others => '0');
             rs_issued <= (others => '1');
-            count <= 0;
 
             pc_ALU1 <= (others => '0');
             ra_ALU1 <= (others => '0');
@@ -165,6 +162,8 @@ begin
             z_ALU2_out <= '0'; 
             control_ALU2 <= (others => '0');
             finished_ALU2_s <= '0';
+            
+            instruction_count := 0;
 
         else
             if (rising_edge(clk)) then
@@ -182,6 +181,8 @@ begin
                     rs_z(to_integer(unsigned(first_free_entry))) <= z_inst1;
                     rs_v4(to_integer(unsigned(first_free_entry))) <= valid4_inst1;
                     rs_issued(to_integer(unsigned(first_free_entry))) <= '0';
+
+                    instruction_count := instruction_count + 1;
                 end if;
 
                 -- Write the second instruction to it at the clock edge
@@ -198,14 +199,8 @@ begin
                     rs_z(to_integer(unsigned(second_free_entry))) <= z_inst2;
                     rs_v4(to_integer(unsigned(second_free_entry))) <= valid4_inst2;
                     rs_issued(to_integer(unsigned(second_free_entry))) <= '0';
-                end if;
 
-                if (wr_inst1 = '1' and wr_inst2 = '1') then
-                    count <= count + 2;
-                elsif (wr_inst1 = '1') then
-                    count <= count + 1;
-                elsif (wr_inst2 = '1') then
-                    count <= count + 1;
+                    instruction_count := instruction_count + 1;
                 end if;
 
                 for i in 0 to size - 1 loop
@@ -265,6 +260,8 @@ begin
                     control_ALU1 <= rs_control(to_integer(unsigned(first_ready_inst)));
                     rs_issued(to_integer(unsigned(first_ready_inst))) <= '1';
                     finished_ALU1_s <= '1';
+
+                    instruction_count := instruction_count - 1;
                 else
                     finished_ALU1_s <= '0';
                 end if;
@@ -280,19 +277,15 @@ begin
                     control_ALU2 <= rs_control(to_integer(unsigned(second_ready_inst)));
                     rs_issued(to_integer(unsigned(second_ready_inst))) <= '1';
                     finished_ALU2_s <= '1';
+
+                    instruction_count := instruction_count - 1;
                 else
                     finished_ALU2_s <= '0';
                 end if;
-
-                --if (rd_ALU1 = '1' and rd_ALU2 = '1') then
-                --    count <= count - 2;
-                --elsif (rd_ALU1 = '1') then
-                --    count <= count - 1;
-                --elsif (rd_ALU2 = '1') then
-                --    count <= count - 1;
-                --end if;
             end if;
         end if;
+
+        count <= instruction_count;
     end process rs_operation;
 
     update_ready_process: process(clr, rs_control, rs_v1, rs_v2, rs_v3, rs_v4)
