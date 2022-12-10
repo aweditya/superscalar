@@ -14,8 +14,10 @@ architecture behavioural of ROM is
 	signal mem: mem_index := (
 		0 => "0000000001000111", -- ADI r0,r1,000111
 		1 => "0000000010001000", -- ADI r0,r2,001000
-		2 => "0001001010011000", -- ADD r1,r2,r3
-		3 => "0001001011100000", -- ADD r1,r3,r4
+		2 => "0011011000000010", -- LHI r3,000000010
+		3 => "0001001010011000", -- ADD r1,r2,r3
+		4 => "0011001000000001", -- LHI r1,000000001
+		5 => "0001001011100000", -- ADD r1,r3,r4
 		others => (others => '1')
 	);
 	signal addr: std_logic_vector(15 downto 0);

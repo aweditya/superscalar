@@ -11,16 +11,19 @@ entity IDStage is
         IFID_inc_Op, IFID_PC_Op: in std_logic_vector(15 downto 0);
         IFID_IMem_Op: in std_logic_vector(31 downto 0);
         
+        -- ALU execution pipeline fowarding
         finish_alu_pipe1, finish_alu_pipe2: in std_logic;
-
         data_rr_alu_1, data_rr_alu_2: in std_logic_vector(7 downto 0);
         data_result_alu_1, data_result_alu_2: in std_logic_vector(15 downto 0);
-
         carry_rr_alu_1, carry_rr_alu_2: in std_logic_vector(7 downto 0);
         carry_result_alu_1, carry_result_alu_2: in std_logic_vector(0 downto 0);
-
         zero_rr_alu_1, zero_rr_alu_2: in std_logic_vector(7 downto 0);
         zero_result_alu_1, zero_result_alu_2: in std_logic_vector(0 downto 0);
+
+        -- LHI execution pipeline forwarding
+        finish_lhi: in std_logic;
+        data_rr_lhi: in std_logic_vector(7 downto 0);
+        data_result_lhi: in std_logic_vector(15 downto 0);
 
         inst_complete_exec: in std_logic;
         inst_complete_exec_dest: in std_logic_vector(2 downto 0);
@@ -35,7 +38,7 @@ entity IDStage is
         control_inst1, control_inst2: out std_logic_vector(5 downto 0); -- control values for the two instructions
         pc_inst1, pc_inst2: out std_logic_vector(15 downto 0); -- pc values for the two instructions
         opr1_inst1, opr2_inst1, opr1_inst2, opr2_inst2: out std_logic_vector(15 downto 0); -- operand values for the two instructions
-        imm6_inst1, imm6_inst2: out std_logic_vector(5 downto 0); -- imm6 values for the two instructions
+        imm9_inst1, imm9_inst2: out std_logic_vector(8 downto 0); -- imm9 values for the two instructions
         c_inst1, z_inst1, c_inst2, z_inst2: out std_logic_vector(7 downto 0); -- carry and zero values for the two instructions
         valid1_inst1, valid2_inst1, valid3_inst1, valid4_inst1: out std_logic; -- valid bits for first instruction
         valid1_inst2, valid2_inst2, valid3_inst2, valid4_inst2: out std_logic; -- valid bits for second instruction
@@ -52,14 +55,22 @@ architecture behavioural of IDStage is
             clk, clr: in std_logic;
             source_select_1, source_select_2, source_select_3, source_select_4: in std_logic_vector(2 downto 0);
 
+            -- Newly decoded instructions
+            wr1, wr2: in std_logic;
             dest_select_1, dest_select_2: in std_logic_vector(2 downto 0);
             tag_1, tag_2: in std_logic_vector(7 downto 0);
 
-            wr1, wr2: in std_logic;
+            -- ALU execution pipeline forwarding for data
             finish_alu_1, finish_alu_2: in std_logic;
             rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
             data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
 
+            -- LHI execution pipeline forwarding for data
+            finish_lhi: in std_logic;
+            rr_lhi: in std_logic_vector(7 downto 0);
+            data_lhi: in std_logic_vector(15 downto 0);
+
+            -- Instruction retirement
             complete: in std_logic;
             inst_complete_dest: in std_logic_vector(2 downto 0);
 
@@ -244,8 +255,8 @@ begin
     --
 
     -- Immediate data field
-    imm6_inst1 <= IFID_IMem_Op(21 downto 16);
-    imm6_inst2 <= IFID_IMem_Op(5 downto 0);
+    imm9_inst1 <= IFID_IMem_Op(24 downto 16);
+    imm9_inst2 <= IFID_IMem_Op(8 downto 0);
     -- 
 
     inst1_operands: OperandExtractor
@@ -315,13 +326,17 @@ begin
             dest_select_2 => dest_addr_inst2,
             tag_1 => data_rr_tag_inst1, 
             tag_2 => data_rr_tag_inst2,
-            
+
             finish_alu_1 => finish_alu_pipe1, 
             finish_alu_2 => finish_alu_pipe2,
             rr_alu_1 => data_rr_alu_1, 
             rr_alu_2 => data_rr_alu_2,
             data_alu_1 => data_result_alu_1, 
             data_alu_2 => data_result_alu_2,
+
+            finish_lhi => finish_lhi,
+            rr_lhi => data_rr_lhi,
+            data_lhi => data_result_lhi,
 
             complete => inst_complete_exec,
             inst_complete_dest => inst_complete_exec_dest,

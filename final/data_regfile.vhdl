@@ -7,14 +7,22 @@ entity DataRegisterFile is
         clk, clr: in std_logic;
         source_select_1, source_select_2, source_select_3, source_select_4: in std_logic_vector(2 downto 0);
 
+        -- Newly decoded instructions
         wr1, wr2: in std_logic;
         dest_select_1, dest_select_2: in std_logic_vector(2 downto 0);
         tag_1, tag_2: in std_logic_vector(7 downto 0);
 
+        -- ALU execution pipeline forwarding for data
         finish_alu_1, finish_alu_2: in std_logic;
         rr_alu_1, rr_alu_2: in std_logic_vector(7 downto 0);
         data_alu_1, data_alu_2: in std_logic_vector(15 downto 0);
 
+        -- LHI execution pipeline forwarding for data
+        finish_lhi: in std_logic;
+        rr_lhi: in std_logic_vector(7 downto 0);
+        data_lhi: in std_logic_vector(15 downto 0);
+
+        -- Instruction retirement
         complete: in std_logic;
         inst_complete_dest: in std_logic_vector(2 downto 0);
 
@@ -47,7 +55,7 @@ architecture behavior of DataRegisterFile is
     signal data_tag_out_1, data_tag_out_2, data_tag_out_3, data_tag_out_4: std_logic;
 
 begin
-    write_process: process(clr, clk, wr1, dest_select_1, tag_1, wr2, dest_select_2, tag_2, finish_alu_1, data_alu_1, rr_alu_1, finish_alu_2, data_alu_2, rr_alu_2, inst_complete_dest, complete, rrf_data, arf_tag)
+    write_process: process(clr, clk)
         variable desired_tag: integer;
         variable reg_num: integer;
 
@@ -81,6 +89,7 @@ begin
                     rrf_busy(to_integer(unsigned(tag_2))) <= '1';
                 end if;
 
+                -- ALU forwarding
                 if (finish_alu_1 = '1') then
                     rrf_data(to_integer(unsigned(rr_alu_1))) <= data_alu_1;
                     rrf_valid(to_integer(unsigned(rr_alu_1))) <= '1';
@@ -89,6 +98,12 @@ begin
                 if (finish_alu_2 = '1') then
                     rrf_data(to_integer(unsigned(rr_alu_2))) <= data_alu_2;
                     rrf_valid(to_integer(unsigned(rr_alu_2))) <= '1';
+                end if;
+
+                -- LHI forwarding
+                if (finish_lhi = '1') then
+                    rrf_data(to_integer(unsigned(rr_lhi))) <= data_lhi;
+                    rrf_valid(to_integer(unsigned(rr_lhi))) <= '1';
                 end if;
 
                 if (complete = '1') then

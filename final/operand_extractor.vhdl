@@ -30,6 +30,12 @@ begin
             operand2_sig <= instruction(8 downto 6);
             destination_sig <= instruction(8 downto 6);
         
+        elsif (instruction(15 downto 12) = "0011") then
+            -- LHI (arbitrarily setting operand1 to instruction(11-9) and operand2 to instruction(8-6))
+            operand1_sig <= instruction(11 downto 9);
+            operand2_sig <= instruction(8 downto 6);
+            destination_sig <= instruction(11 downto 9);
+
         else 
             -- Default (there are more cases for other instructions)
             operand1_sig <= instruction(11 downto 9);
@@ -39,7 +45,7 @@ begin
         end if;
     end process get_operands_process;
 	 
-	 operand1 <= operand1_sig;
-	 operand2 <= operand2_sig;
-	 destination <= destination_sig;
+    operand1 <= operand1_sig;
+    operand2 <= operand2_sig;
+    destination <= destination_sig;
 end architecture behavioural;
