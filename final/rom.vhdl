@@ -1,3 +1,4 @@
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -12,15 +13,13 @@ end entity ROM;
 architecture behavioural of ROM is
 	type mem_index is array(63 downto 0) of std_logic_vector(15 downto 0);
 	signal mem: mem_index := (
-		0 => "0000000001000111", -- ADI r0,r1,000111
-		1 => "0000000010001000", -- ADI r0,r2,001000
-		2 => "0011011000000010", -- LHI r3,000000010
-		3 => "0001001010011000", -- ADD r1,r2,r3
-		4 => "0011001000000001", -- LHI r1,000000001
-		5 => "0001001011100000", -- ADD r1,r3,r4
-		others => (others => '1')
-	);
-	signal addr: std_logic_vector(15 downto 0);
+	0 => "0000001011010110",
+	1 => "0001000011001000",
+	2 => "0001000010010000",
+	3 => "0001001011101010",
+	4 => "0010010001101000",
+	OTHERS => (OTHERS => '1'));
+signal addr: std_logic_vector(15 downto 0);
 
 begin
 	process (A, mem)
